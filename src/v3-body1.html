@@ -1,0 +1,78 @@
+<div class="phone">
+  <section class="screen" id="s-start" data-title="Digitalt messekart" data-sub="Prototype v3">
+    <main>
+      <h2>Oslo TCG Show</h2>
+      <p class="lead" data-event-line></p>
+      <div class="gap-s">
+        <button class="role" data-go="kart"><span class="ic">🗺️</span><span><b>Jeg er kjøper</b><span class="d">Finn kort og vei til bordet</span></span><span class="chev">›</span></button>
+        <button class="role" data-go="vendor-login"><span class="ic">🏪</span><span><b>Jeg er vendor</b><span class="d">Logg inn med kode fra arrangør</span></span><span class="chev">›</span></button>
+        <button class="role" data-go="arr-messe"><span class="ic">📋</span><span><b>Jeg er arrangør</b><span class="d">Messe, bord og vendorkoder</span></span><span class="chev">›</span></button>
+      </div>
+      <p class="muted small mt">Klikkbar demo. Ingen data lagres, og alt nullstilles når siden lastes på nytt.</p>
+    </main>
+  </section>
+
+  <section class="screen" id="s-arr-messe" data-title="Messe" data-sub="Arrangør · steg 1 av 2" data-back="start">
+    <main>
+      <h2>Messeinfo</h2>
+      <p class="lead">Forhåndsutfylt for demo.</p>
+      <label class="f"><span>Navn</span><input id="ev-name"></label>
+      <label class="f"><span>Dato</span><input id="ev-date" type="date"></label>
+      <label class="f"><span>Sted</span><input id="ev-place"></label>
+      <div class="panel" style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:1.4rem">🗺️</span>
+        <div style="flex:1"><b>Hallkart lastet opp</b><div class="muted small">hall-b-plan.svg · 58 bord</div></div>
+        <span class="status st-items">OK</span>
+      </div>
+      <button class="btn btn-primary mt" id="btn-ev-save">Fortsett til bord og vendors</button>
+    </main>
+  </section>
+
+  <section class="screen" id="s-arr-bord" data-title="Bord og vendors" data-sub="Arrangør · steg 2 av 2" data-back="arr-messe">
+    <main>
+      <div class="search"><span class="si">🔍</span><input type="search" id="arr-q" placeholder="Søk på bordnr eller navn" autocomplete="off"></div>
+      <div class="seg" id="arr-seg"><button data-f="vendor" class="on">Med vendor</button><button data-f="all">Alle bord</button></div>
+      <p class="muted small" id="arr-summary"></p>
+      <ul class="list" id="arr-list"></ul>
+    </main>
+  </section>
+
+  <section class="screen" id="s-vendor-login" data-title="Vendor-innlogging" data-sub="Oslo TCG Show" data-back="start">
+    <main>
+      <h2>Logg inn med kode</h2>
+      <p class="lead">Du får en personlig kode fra arrangøren for ditt bord. Det finnes ingen åpen registrering.</p>
+      <label class="f"><span>Vendor-kode</span><input id="v-code" class="code" placeholder="OTS-12-K7Q4" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+      <div class="err" id="v-err" role="alert"></div>
+      <button class="btn btn-primary" id="btn-v-login">Logg inn</button>
+      <button class="btn btn-text mt-s" id="btn-v-demo">Demo: fyll inn gyldig kode</button>
+    </main>
+  </section>
+
+  <section class="screen" id="s-vendor-home" data-title="Mitt bord" data-sub="Vendor" data-back="vendor-login">
+    <main>
+      <div class="hero-store"><h2 id="vh-name"></h2><span class="num" id="vh-booth"></span></div>
+      <button class="btn btn-primary" id="btn-add">+ Legg til vare</button>
+      <div class="panel mt" style="padding-top:4px;padding-bottom:4px"><div id="vh-items"></div></div>
+      <div class="btn-row mt">
+        <button class="btn btn-secondary" data-go="vendor-kart">🗺️ Kart</button>
+        <button class="btn btn-secondary" data-go="vendor-profil">👤 Profil</button>
+      </div>
+      <button class="btn btn-text mt-s" id="btn-logout">Logg ut</button>
+    </main>
+  </section>
+
+  <section class="screen" id="s-vendor-profil" data-title="Min profil" data-sub="Vendor" data-back="vendor-home">
+    <main>
+      <label class="f"><span>Kort bio</span><textarea id="pf-bio" maxlength="160" placeholder="Hva selger du?"></textarea></label>
+      <div class="notice info">Kontaktinfo vises bare for andre innloggede vendors, aldri for kjøpere. Du velger selv hvilke felt som vises.</div>
+      <div class="panel" style="padding-top:4px;padding-bottom:4px">
+        <div class="field-group"><span class="flabel">Telefon</span><input id="pf-phone" inputmode="tel">
+          <label class="toggle"><span>Vis for andre vendors</span><input type="checkbox" id="pf-show-phone"><span class="sw"></span></label></div>
+        <div class="field-group"><span class="flabel">E-post</span><input id="pf-email" type="email">
+          <label class="toggle"><span>Vis for andre vendors</span><input type="checkbox" id="pf-show-email"><span class="sw"></span></label></div>
+        <div class="field-group"><span class="flabel">Instagram</span><input id="pf-ig" placeholder="@brukernavn">
+          <label class="toggle"><span>Vis for andre vendors</span><input type="checkbox" id="pf-show-ig"><span class="sw"></span></label></div>
+      </div>
+      <button class="btn btn-primary mt" id="btn-pf-save">Lagre profil</button>
+    </main>
+  </section>

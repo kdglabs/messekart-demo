@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Digitalt messekart – Oslo TCG Show (demo v3)</title>
+<script>
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem('messekart-theme'); } catch (e) {}
+    var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  })();
+</script>
+<style>
+  :root {
+    --bg: #f5f6f8; --surface: #ffffff; --ink: #1d2433; --muted: #646d80; --line: #e4e7ed;
+    --accent: #34508f; --accent-ink: #ffffff; --accent-soft: #e9eef8;
+    --ok: #1f7a4d; --ok-soft: #e5f4ec; --warn: #8a5200; --warn-soft: #fdf3e2;
+    --danger: #b3261e; --danger-soft: #fbeceb; --info: #34508f; --info-soft: #e9eef8;
+    --neutral-soft: #eef0f3;
+    --m-floor: #fbfbfd; --m-wall: #2b3350; --m-block: #eef0f6; --m-block-label: #34508f;
+    --m-t-fill: #ffffff; --m-t-stroke: #b6bdcf; --m-t-text: #5b6378;
+    --m-v-fill: #d3def5; --m-v-stroke: #6f86bd; --m-v-text: #17244d;
+    --m-hl-fill: #f5b301; --m-hl-stroke: #7a4f00; --m-hl-text: #1d2433;
+    --m-sel-fill: #1d5bd8; --m-sel-stroke: #0a2a6e; --m-sel-text: #ffffff;
+    --m-zone: #2b3350; --m-zone-text: #ffffff; --m-door: #1f7a4d;
+    --m-route: #e0521f; --m-you: #1d2433; --m-you-ring: #ffffff; --m-halo: #ffffff;
+    --radius: 16px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg: #11141b; --surface: #1a1e28; --ink: #e8eaf0; --muted: #9ba3b5; --line: #2b313f;
+    --accent: #8fb0ff; --accent-ink: #0f1422; --accent-soft: #232c44;
+    --ok: #6fd3a0; --ok-soft: #173327; --warn: #f3c071; --warn-soft: #3a2c14;
+    --danger: #ff9b92; --danger-soft: #3b1d1b; --info: #a9c1ff; --info-soft: #232c44;
+    --neutral-soft: #242936;
+    --m-floor: #171b24; --m-wall: #aeb6cc; --m-block: #232938; --m-block-label: #aebfff;
+    --m-t-fill: #262c3b; --m-t-stroke: #4d5670; --m-t-text: #b3bbcd;
+    --m-v-fill: #2f4270; --m-v-stroke: #7f9ee6; --m-v-text: #e6ecff;
+    --m-hl-fill: #ffc53d; --m-hl-stroke: #fff0c2; --m-hl-text: #1a1a1a;
+    --m-sel-fill: #62a0ff; --m-sel-stroke: #eaf2ff; --m-sel-text: #06173a;
+    --m-zone: #3b4770; --m-zone-text: #ffffff; --m-door: #6fd3a0;
+    --m-route: #ff7a45; --m-you: #ffffff; --m-you-ring: #11141b; --m-halo: #171b24;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--ink); line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+  .phone { max-width: 430px; min-height: 100dvh; margin: 0 auto; background: var(--bg); position: relative; }
+  .screen { display: none; min-height: 100dvh; flex-direction: column; }
+  .screen.active { display: flex; }
+  .topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--bg); border-bottom: 1px solid var(--line); min-height: 60px; }
+  .topbar .t { flex: 1; min-width: 0; }
+  .topbar .t b { display: block; font-size: 1rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topbar .t small { display: block; font-size: .75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .icon-btn { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 12px; font-size: 1.15rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .icon-btn:active { background: var(--accent-soft); }
+  .demo-badge { font-size: .64rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--warn); background: var(--warn-soft); padding: 3px 7px; border-radius: 999px; white-space: nowrap; }
+  main { flex: 1; padding: 20px 18px 32px; }
+  h2 { font-size: 1.4rem; line-height: 1.25; margin-bottom: 6px; }
+  .lead { color: var(--muted); margin-bottom: 22px; }
+  .muted { color: var(--muted); } .small { font-size: .82rem; }
+  .gap-s > * + * { margin-top: 10px; }
+  .mt { margin-top: 20px; } .mt-s { margin-top: 10px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; padding: 12px 18px; border-radius: 14px; border: 1px solid transparent; font: inherit; font-weight: 650; font-size: 1rem; cursor: pointer; text-decoration: none; }
+  .btn:active { transform: scale(.985); }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--line); }
+  .btn-text { background: none; color: var(--accent); min-height: 44px; font-weight: 600; }
+  .btn-sm { width: auto; min-height: 40px; padding: 8px 14px; font-size: .88rem; border-radius: 11px; }
+  .btn-row { display: flex; gap: 10px; } .btn-row > * { flex: 1; }
+  .role, .opt { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); font: inherit; color: var(--ink); cursor: pointer; }
+  .role:active, .opt:active { border-color: var(--accent); }
+  .role .ic, .opt .ic { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+  .role b, .opt b { display: block; font-size: 1rem; }
+  .role span.d, .opt span.d { font-size: .84rem; color: var(--muted); line-height: 1.35; display: block; }
+  .chev { margin-left: auto; color: var(--muted); font-size: 1.2rem; }
+  label.f { display: block; margin-bottom: 16px; }
+  label.f > span, .flabel { display: block; font-size: .82rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  input, select, textarea { width: 100%; min-height: 50px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); font: inherit; font-size: 1rem; }
+  textarea { min-height: 92px; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; font-size: 1.1rem; }
+  .err { display: none; margin-bottom: 14px; padding: 10px 12px; border-radius: 10px; background: var(--danger-soft); color: var(--danger); font-size: .9rem; font-weight: 600; }
+  .err.show { display: block; }
+  .notice { padding: 12px 14px; border-radius: 12px; font-size: .9rem; margin-bottom: 16px; line-height: 1.4; }
+  .notice.warn { background: var(--warn-soft); color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent); }
+  .notice.info { background: var(--info-soft); color: var(--info); }
+  .notice.ok { background: var(--ok-soft); color: var(--ok); }
+  .search { position: relative; }
+  .search input { padding-left: 42px; }
+  .search .si { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--muted); }
+  .fake-search { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font: inherit; font-size: 1rem; cursor: pointer; text-align: left; }
+  .seg { display: flex; background: var(--neutral-soft); border-radius: 12px; padding: 4px; gap: 4px; margin: 14px 0 6px; }
+  .seg button { flex: 1; min-height: 40px; border: none; border-radius: 9px; background: transparent; color: var(--muted); font: inherit; font-weight: 650; font-size: .88rem; cursor: pointer; }
+  .seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+  .list { list-style: none; }
+  .row { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .row:last-child { border-bottom: none; }
+  .row-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .row-bot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88rem; letter-spacing: .03em; }
+  .status { font-size: .74rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .st-none { background: var(--neutral-soft); color: var(--muted); }
+  .st-sent { background: var(--info-soft); color: var(--info); }
+  .st-in { background: var(--warn-soft); color: var(--warn); }
+  .st-items { background: var(--ok-soft); color: var(--ok); }
+  .item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: flex-start; }
+  .item:last-child { border-bottom: none; }
+  .item .body { flex: 1; min-width: 0; }
+  .item .nm { font-weight: 650; }
+  .item .cd { font-size: .84rem; color: var(--muted); }
+  .item .pr { font-weight: 700; white-space: nowrap; text-align: right; }
+  .item .acts { display: flex; gap: 14px; margin-top: 4px; }
+  .thumb { width: 44px; height: 58px; border-radius: 6px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--line); background: var(--neutral-soft); }
+  .thumb.ph { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.1rem; }
+  .thumbs { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .thumbs img { width: 38px; height: 50px; border-radius: 5px; object-fit: cover; border: 1px solid var(--line); }
+  .link-btn { background: none; border: none; color: var(--accent); font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer; padding: 4px 0; min-height: 32px; }
+  .link-btn.danger { color: var(--danger); }
+  a.ext { color: var(--accent); font-size: .86rem; font-weight: 600; text-decoration: none; display: inline-block; padding: 4px 0; min-height: 32px; }
+  .result { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px 0; background: none; border: none; border-bottom: 1px solid var(--line); font: inherit; color: var(--ink); cursor: pointer; }
+  .result .grow { flex: 1; min-width: 0; }
+  .result .tb { font-weight: 800; font-size: .86rem; color: var(--accent); background: var(--accent-soft); padding: 7px 10px; border-radius: 10px; white-space: nowrap; }
+  .tag { font-size: .7rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: var(--neutral-soft); color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+  .hero-store { text-align: center; padding: 6px 0 20px; }
+  .hero-store .num { display: inline-block; font-size: .85rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); padding: 4px 12px; border-radius: 999px; margin-top: 6px; }
+  .bio { color: var(--muted); font-size: .92rem; margin-top: 10px; }
+  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: .86rem; color: var(--muted); cursor: pointer; position: relative; }
+  .toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; min-height: 0; }
+  .toggle .sw { width: 46px; height: 28px; border-radius: 999px; background: var(--line); position: relative; flex-shrink: 0; transition: background .15s; }
+  .toggle .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: left .15s; }
+  .toggle input:checked + .sw { background: var(--ok); }
+  .toggle input:checked + .sw::after { left: 21px; }
+  .toggle input:focus-visible + .sw { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .field-group { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .field-group:last-child { border-bottom: none; }
+  .map-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; position: relative; }
+  .map-scroll { overflow: auto; max-height: 56dvh; -webkit-overflow-scrolling: touch; }
+  .map-scroll svg { display: block; }
+  .zoom { position: absolute; right: 10px; bottom: 52px; display: flex; flex-direction: column; gap: 6px; }
+  .zoom button { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 1.2rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.14); }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; padding: 10px 14px; border-top: 1px solid var(--line); font-size: .76rem; color: var(--muted); }
+  .legend i { display: inline-block; width: 13px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: middle; border: 1.5px solid; }
+  .pick-banner { display: none; align-items: center; gap: 10px; padding: 12px 14px; margin-top: 10px; border-radius: 12px; background: var(--accent); color: var(--accent-ink); font-weight: 650; font-size: .92rem; }
+  .pick-banner.show { display: flex; }
+  .pick-banner span { flex: 1; }
+  .pick-banner button { background: var(--accent-ink); color: var(--accent); border: none; border-radius: 9px; font: inherit; font-weight: 700; padding: 8px 12px; cursor: pointer; }
+  .map-card.picking { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .svg-map .floor { fill: var(--m-floor); }
+  .svg-map .wall { fill: none; stroke: var(--m-wall); stroke-width: 3; }
+  .svg-map .doorgap { stroke: var(--m-floor); stroke-width: 5; }
+  .svg-map .door { fill: none; stroke: var(--m-door); stroke-width: 1.6; }
+  .svg-map .door-l { fill: var(--m-door); font-size: 9px; font-weight: 800; letter-spacing: .04em; }
+  .svg-map .block { fill: var(--m-block); }
+  .svg-map .block-l { fill: var(--m-block-label); font-size: 13px; font-weight: 800; }
+  .svg-map .tb rect { fill: var(--m-t-fill); stroke: var(--m-t-stroke); stroke-width: 1; }
+  .svg-map .tb text { fill: var(--m-t-text); font-size: 7px; font-weight: 700; pointer-events: none; }
+  .svg-map .tb.v rect { fill: var(--m-v-fill); stroke: var(--m-v-stroke); stroke-width: 1.4; }
+  .svg-map .tb.v text { fill: var(--m-v-text); }
+  .svg-map .tb.hl rect { fill: var(--m-hl-fill); stroke: var(--m-hl-stroke); stroke-width: 2; }
+  .svg-map .tb.hl text { fill: var(--m-hl-text); font-weight: 800; }
+  .svg-map .tb.sel rect { fill: var(--m-sel-fill); stroke: var(--m-sel-stroke); stroke-width: 2.2; }
+  .svg-map .tb.sel text { fill: var(--m-sel-text); font-weight: 800; }
+  .svg-map .tb.click { cursor: pointer; }
+  .svg-map .zone { fill: var(--m-zone); }
+  .svg-map .zone-l { fill: var(--m-zone-text); font-size: 10px; font-weight: 800; letter-spacing: .03em; }
+  .svg-map .pulse { fill: none; stroke: var(--m-hl-fill); stroke-width: 3; }
+  .svg-map .sel-ring { fill: none; stroke: var(--m-sel-fill); stroke-width: 2.5; }
+  .svg-map .route-bg { fill: none; stroke: var(--m-halo); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+  .svg-map .route { fill: none; stroke: var(--m-route); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 7; animation: dash 1s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -16; } }
+  .svg-map .you { fill: var(--m-you); stroke: var(--m-you-ring); stroke-width: 3; }
+  .svg-map .you-l { fill: var(--m-you); font-size: 10px; font-weight: 800; paint-order: stroke; stroke: var(--m-halo); stroke-width: 3.5px; }
+  .pos { display: flex; align-items: flex-start; gap: 12px; margin-top: 14px; }
+  .pos .grow { flex: 1; }
+  .target { margin-top: 14px; padding: 16px; border-radius: var(--radius); background: var(--surface); border: 2px solid var(--m-hl-fill); }
+  .sheet-bg { display: none; position: fixed; inset: 0; background: rgba(10,12,18,.5); z-index: 50; align-items: flex-end; justify-content: center; }
+  .sheet-bg.open { display: flex; }
+  .sheet-bg.peek { background: transparent; pointer-events: none; }
+  .sheet-bg.peek .sheet { pointer-events: auto; max-height: 50dvh; box-shadow: 0 -8px 30px rgba(0,0,0,.25); border-top: 1px solid var(--line); }
+  .sheet { width: 100%; max-width: 430px; background: var(--surface); border-radius: 20px 20px 0 0; padding: 18px 18px calc(22px + env(safe-area-inset-bottom, 0px)); max-height: 90dvh; overflow-y: auto; }
+  .sheet-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .sheet-head h3 { flex: 1; font-size: 1.12rem; line-height: 1.25; }
+  .sheet-head .icon-btn { width: 38px; height: 38px; font-size: 1rem; }
+  .grip { width: 40px; height: 4px; border-radius: 4px; background: var(--line); margin: -6px auto 12px; }
+  .sec-title { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 18px 0 4px; }
+  .contact a { display: flex; align-items: center; gap: 10px; padding: 10px 0; color: var(--accent); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--line); }
+  .contact a:last-child { border-bottom: none; }
+  .viewfinder { position: relative; aspect-ratio: 4 / 3; border-radius: 16px; overflow: hidden; background: radial-gradient(circle at 40% 35%, #3a4152, #11141b 75%); margin-bottom: 14px; display: flex; align-items: center; justify-content: center; }
+  .viewfinder .frame { position: absolute; inset: 16% 22%; border: 3px solid rgba(255,255,255,.9); border-radius: 12px; }
+  .viewfinder .frame.wide { inset: 32% 10%; }
+  .viewfinder .scanline { position: absolute; left: 22%; right: 22%; height: 2px; background: #ffc53d; box-shadow: 0 0 10px #ffc53d; top: 16%; animation: scan 1.8s ease-in-out infinite alternate; }
+  .viewfinder .frame.wide + .scanline { left: 10%; right: 10%; top: 32%; animation-name: scan2; }
+  @keyframes scan { to { top: 84%; } }
+  @keyframes scan2 { to { top: 68%; } }
+  .viewfinder .vf-l { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; color: #fff; font-size: .8rem; font-weight: 600; text-shadow: 0 1px 3px #000; }
+  .viewfinder .vf-demo { position: absolute; top: 10px; left: 10px; font-size: .64rem; font-weight: 800; letter-spacing: .05em; background: rgba(255,197,61,.9); color: #1a1a1a; padding: 2px 7px; border-radius: 6px; }
+  .viewfinder .bars { display: flex; gap: 3px; height: 34%; opacity: .55; }
+  .viewfinder .bars i { display: block; background: #fff; }
+  .spinner { width: 42px; height: 42px; border-radius: 50%; border: 4px solid rgba(255,255,255,.25); border-top-color: #ffc53d; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 34px 10px; color: var(--muted); font-weight: 600; }
+  .loading .spinner { border-color: var(--line); border-top-color: var(--accent); }
+  .slab-card { display: flex; gap: 12px; padding: 14px; border-radius: 14px; background: var(--neutral-soft); margin-bottom: 16px; }
+  .slab-card .imgs { display: flex; gap: 6px; }
+  .slab-card img { width: 52px; height: 86px; border-radius: 6px; object-fit: cover; border: 1px solid var(--line); }
+  .conf { display: inline-block; font-size: .75rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; }
+  .conf.hi { background: var(--ok-soft); color: var(--ok); }
+  .conf.mid { background: var(--warn-soft); color: var(--warn); }
+  .conf.lo { background: var(--neutral-soft); color: var(--muted); }
+  .suggest { padding: 16px; border-radius: 14px; border: 2px solid var(--ok); margin-bottom: 12px; }
+  .alt { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; padding: 12px 0; background: none; border: none; border-bottom: 1px solid var(--line); font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+  .img-edit { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .img-edit .im { position: relative; }
+  .img-edit img { width: 60px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); display: block; }
+  .img-edit .rm { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--ink); color: var(--bg); font-size: .75rem; cursor: pointer; }
+  .file-btn { position: relative; overflow: hidden; }
+  .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; min-height: 0; }
+  .toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 140%); max-width: min(380px, calc(100% - 32px)); background: var(--ink); color: var(--bg); padding: 12px 18px; border-radius: 12px; font-weight: 600; font-size: .92rem; z-index: 100; opacity: 0; transition: .25s; pointer-events: none; }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+  .empty { text-align: center; padding: 24px 10px; color: var(--muted); }
+  /* v3.1: to-stegs «Legg til vare» */
+  .stepper { margin: -4px 0 16px; }
+  .stepper .bars { display: flex; gap: 6px; margin-bottom: 6px; }
+  .stepper .bars i { flex: 1; height: 4px; border-radius: 4px; background: var(--line); }
+  .stepper .bars i.on { background: var(--accent); }
+  .stepper .st-l { font-size: .82rem; color: var(--muted); }
+  .stepper .st-l b { color: var(--ink); }
+  .cam-btn { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 96px; padding: 18px; border: none; border-radius: var(--radius); background: var(--accent); color: var(--accent-ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+  .cam-btn .cam-ic { width: 52px; height: 52px; border-radius: 14px; background: color-mix(in srgb, var(--accent-ink) 16%, transparent); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
+  .cam-btn b { display: block; font-size: 1.08rem; }
+  .cam-btn .d { display: block; font-size: .84rem; opacity: .85; margin-top: 2px; }
+  .or { display: flex; align-items: center; gap: 10px; margin: 16px 0 12px; color: var(--muted); font-size: .8rem; }
+  .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .result.sug .thumb { width: 46px; height: 64px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+  .result.sug .chev { color: var(--muted); font-size: 1.3rem; }
+  .tag.co { background: var(--accent); color: var(--accent-ink); font-weight: 800; }
+  .grade { font-weight: 700; color: var(--ink); }
+  .official { border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 12px; background: var(--surface); }
+  .official.on { border: 2px solid var(--ok); }
+  .official .off-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .official .imgs { display: flex; gap: 8px; }
+  .official .imgs img { width: 64px; height: 106px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+  .demo-pill { font-size: .66rem; font-weight: 800; letter-spacing: .05em; background: #ffc53d; color: #1a1a1a; padding: 2px 8px; border-radius: 6px; }
+  .btn-outline { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+  .notice .ext { font-weight: 700; }
+  .lock-hint { font-size: .84rem; color: var(--muted); margin: 0 0 10px; text-align: center; }
+  input[readonly] { opacity: .8; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <section class="screen" id="s-start" data-title="Digitalt messekart" data-sub="Prototype v3">
+    <main>
+      <h2>Oslo TCG Show</h2>
+      <p class="lead" data-event-line></p>
+      <div class="gap-s">
+        <button class="role" data-go="kart"><span class="ic">🗺️</span><span><b>Jeg er kjøper</b><span class="d">Finn kort og vei til bordet</span></span><span class="chev">›</span></button>
+        <button class="role" data-go="vendor-login"><span class="ic">🏪</span><span><b>Jeg er vendor</b><span class="d">Logg inn med kode fra arrangør</span></span><span class="chev">›</span></button>
+        <button class="role" data-go="arr-messe"><span class="ic">📋</span><span><b>Jeg er arrangør</b><span class="d">Messe, bord og vendorkoder</span></span><span class="chev">›</span></button>
+      </div>
+      <p class="muted small mt">Klikkbar demo. Ingen data lagres, og alt nullstilles når siden lastes på nytt.</p>
+    </main>
+  </section>
+
+  <section class="screen" id="s-arr-messe" data-title="Messe" data-sub="Arrangør · steg 1 av 2" data-back="start">
+    <main>
+      <h2>Messeinfo</h2>
+      <p class="lead">Forhåndsutfylt for demo.</p>
+      <label class="f"><span>Navn</span><input id="ev-name"></label>
+      <label class="f"><span>Dato</span><input id="ev-date" type="date"></label>
+      <label class="f"><span>Sted</span><input id="ev-place"></label>
+      <div class="panel" style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:1.4rem">🗺️</span>
+        <div style="flex:1"><b>Hallkart lastet opp</b><div class="muted small">hall-b-plan.svg · 58 bord</div></div>
+        <span class="status st-items">OK</span>
+      </div>
+      <button class="btn btn-primary mt" id="btn-ev-save">Fortsett til bord og vendors</button>
+    </main>
+  </section>
+
+  <section class="screen" id="s-arr-bord" data-title="Bord og vendors" data-sub="Arrangør · steg 2 av 2" data-back="arr-messe">
+    <main>
+      <div class="search"><span class="si">🔍</span><input type="search" id="arr-q" placeholder="Søk på bordnr eller navn" autocomplete="off"></div>
+      <div class="seg" id="arr-seg"><button data-f="vendor" class="on">Med vendor</button><button data-f="all">Alle bord</button></div>
+      <p class="muted small" id="arr-summary"></p>
+      <ul class="list" id="arr-list"></ul>
+    </main>
+  </section>
+
+  <section class="screen" id="s-vendor-login" data-title="Vendor-innlogging" data-sub="Oslo TCG Show" data-back="start">
+    <main>
+      <h2>Logg inn med kode</h2>
+      <p class="lead">Du får en personlig kode fra arrangøren for ditt bord. Det finnes ingen åpen registrering.</p>
+      <label class="f"><span>Vendor-kode</span><input id="v-code" class="code" placeholder="OTS-12-K7Q4" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+      <div class="err" id="v-err" role="alert"></div>
+      <button class="btn btn-primary" id="btn-v-login">Logg inn</button>
+      <button class="btn btn-text mt-s" id="btn-v-demo">Demo: fyll inn gyldig kode</button>
+    </main>
+  </section>
+
+  <section class="screen" id="s-vendor-home" data-title="Mitt bord" data-sub="Vendor" data-back="vendor-login">
+    <main>
+      <div class="hero-store"><h2 id="vh-name"></h2><span class="num" id="vh-booth"></span></div>
+      <button class="btn btn-primary" id="btn-add">+ Legg til vare</button>
+      <div class="panel mt" style="padding-top:4px;padding-bottom:4px"><div id="vh-items"></div></div>
+      <div class="btn-row mt">
+        <button class="btn btn-secondary" data-go="vendor-kart">🗺️ Kart</button>
+        <button class="btn btn-secondary" data-go="vendor-profil">👤 Profil</button>
+      </div>
+      <button class="btn btn-text mt-s" id="btn-logout">Logg ut</button>
+    </main>
+  </section>
+
+  <section class="screen" id="s-vendor-profil" data-title="Min profil" data-sub="Vendor" data-back="vendor-home">
+    <main>
+      <label class="f"><span>Kort bio</span><textarea id="pf-bio" maxlength="160" placeholder="Hva selger du?"></textarea></label>
+      <div class="notice info">Kontaktinfo vises bare for andre innloggede vendors, aldri for kjøpere. Du velger selv hvilke felt som vises.</div>
+      <div class="panel" style="padding-top:4px;padding-bottom:4px">
+        <div class="field-group"><span class="flabel">Telefon</span><input id="pf-phone" inputmode="tel">
+          <label class="toggle"><span>Vis for andre vendors</span><input type="checkbox" id="pf-show-phone"><span class="sw"></span></label></div>
+        <div class="field-group"><span class="flabel">E-post</span><input id="pf-email" type="email">
+          <label class="toggle"><span>Vis for andre vendors</span><input type="checkbox" id="pf-show-email"><span class="sw"></span></label></div>
+        <div class="field-group"><span class="flabel">Instagram</span><input id="pf-ig" placeholder="@brukernavn">
+          <label class="toggle"><span>Vis for andre vendors</span><input type="checkbox" id="pf-show-ig"><span class="sw"></span></label></div>
+      </div>
+      <button class="btn btn-primary mt" id="btn-pf-save">Lagre profil</button>
+    </main>
+  </section>
+  <section class="screen" id="s-vendor-kart" data-title="Kart" data-sub="Trykk på et bord for å se vendor" data-back="vendor-home">
+    <main style="padding-top:14px">
+      <div class="map-card"><div class="map-scroll" id="vk-scroll"></div>
+        <div class="zoom"><button data-zoom="1" aria-label="Zoom inn">+</button><button data-zoom="-1" aria-label="Zoom ut">−</button></div>
+        <div class="legend"><span><i style="background:var(--m-hl-fill);border-color:var(--m-hl-stroke)"></i>Ditt bord</span><span><i style="background:var(--m-sel-fill);border-color:var(--m-sel-stroke)"></i>Valgt</span><span><i style="background:var(--m-v-fill);border-color:var(--m-v-stroke)"></i>Vendor</span><span><i style="background:var(--m-t-fill);border-color:var(--m-t-stroke)"></i>Ledig</span></div>
+      </div>
+      <p class="muted small mt-s" id="vk-caption"></p>
+    </main>
+  </section>
+
+  <section class="screen" id="s-kart" data-title="Oslo TCG Show" data-sub="Hallkart · hall B" data-back="start">
+    <main style="padding-top:14px">
+      <button class="fake-search" data-go="sok">🔍 <span>Søk etter kort …</span></button>
+      <div class="pick-banner" id="pick-banner"><span>Trykk på bordet du står ved</span><button id="btn-pick-cancel">Avbryt</button></div>
+      <div class="map-card mt-s" id="k-card">
+        <div class="map-scroll" id="k-scroll"></div>
+        <div class="zoom"><button data-zoom="1" aria-label="Zoom inn">+</button><button data-zoom="-1" aria-label="Zoom ut">−</button></div>
+        <div class="legend"><span><i style="background:var(--m-v-fill);border-color:var(--m-v-stroke)"></i>Vendor</span><span><i style="background:var(--m-t-fill);border-color:var(--m-t-stroke)"></i>Ledig</span><span><i style="background:var(--m-hl-fill);border-color:var(--m-hl-stroke)"></i>Mål</span></div>
+      </div>
+      <div id="k-target"></div>
+      <div class="pos">
+        <div class="grow"><b id="k-you">📍 Du er her: Inngangen</b>
+          <div class="muted small">Posisjonen kommer fra inngangen eller bordet du har valgt, ikke fra GPS.</div></div>
+        <button class="btn btn-secondary btn-sm" id="btn-pos">Jeg står ved bord …</button>
+      </div>
+    </main>
+  </section>
+
+  <section class="screen" id="s-sok" data-title="Søk" data-sub="Finn kort på messen" data-back="kart">
+    <main style="padding-top:14px">
+      <div class="search"><span class="si">🔍</span><input type="search" id="q" placeholder="Kortnavn, f.eks. Sol Ring" autocomplete="off" enterkeyhint="search"></div>
+      <p class="muted small mt-s">Trykk på et treff for å se veien til bordet.</p>
+      <div id="q-res" class="mt-s"></div>
+    </main>
+  </section>
+
+  <section class="screen" id="s-bord" data-title="Bord" data-sub="" data-back="kart">
+    <main>
+      <div class="hero-store"><h2 id="b-name"></h2><span class="num" id="b-booth"></span><p class="bio" id="b-bio"></p></div>
+      <button class="btn btn-primary" id="btn-route">Vis vei til bordet</button>
+      <div class="panel mt" style="padding-top:4px;padding-bottom:4px"><div id="b-items"></div></div>
+    </main>
+  </section>
+</div>
+
+<div class="sheet-bg" id="sh-gen"><div class="sheet">
+  <div class="sheet-head"><h3 id="gen-title">Generer kode</h3><button class="icon-btn" data-close aria-label="Lukk">✕</button></div>
+  <p class="lead">Koden gir tilgang til bare dette bordet.</p>
+  <label class="f"><span>Vendornavn</span><input id="gen-name" placeholder="F.eks. Kortkjelleren"></label>
+  <button class="btn btn-primary" id="btn-gen-ok">Generer kode</button>
+</div></div>
+
+<div class="sheet-bg" id="sh-flow"><div class="sheet" id="flow"></div></div>
+
+<div class="sheet-bg peek" id="sh-vinfo"><div class="sheet" id="vinfo"></div></div>
+
+<div class="sheet-bg" id="sh-pos"><div class="sheet">
+  <div class="sheet-head"><h3>Hvor står du?</h3><button class="icon-btn" data-close aria-label="Lukk">✕</button></div>
+  <p class="lead" style="margin-bottom:16px">Ruten tegnes fra bordet du velger. Vi bruker ikke GPS.</p>
+  <button class="btn btn-primary" id="btn-pick-map">Trykk på bordet i kartet</button>
+  <div class="sec-title" style="margin-top:22px">Eller skriv bordnummer</div>
+  <div class="btn-row" style="margin-top:8px">
+    <input id="pos-num" type="number" inputmode="numeric" min="1" max="58" placeholder="F.eks. 16" style="flex:2">
+    <button class="btn btn-secondary" id="btn-pos-num" style="flex:1">Bruk</button>
+  </div>
+  <div class="err" id="pos-err" style="margin-top:10px"></div>
+  <button class="btn btn-text mt-s" id="btn-pos-reset">Start fra inngangen</button>
+</div></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function find(arr, fn) { for (var i = 0; i < arr.length; i++) if (fn(arr[i])) return arr[i]; return null; }
+
+  /* ===== GEOMETRI (fiktiv hall B) ===== */
+  var TL = 20, TS = 12, P = 22, BS = 66;
+  var AX = [120, 273, 430], AY = [80, 228, 380];
+  var BLOCKS = [
+    { start: 1, bx: 160, by: 120, c: 0, r: 0 }, { start: 13, bx: 320, by: 120, c: 1, r: 0 },
+    { start: 25, bx: 160, by: 270, c: 0, r: 1 }, { start: 37, bx: 320, by: 270, c: 1, r: 1 }
+  ];
+  var TABLES = {};
+  BLOCKS.forEach(function (b) {
+    var L = AX[b.c], R = AX[b.c + 1], T = AY[b.r], B = AY[b.r + 1], i, n, x, y;
+    for (i = 0; i < 3; i++) { n = b.start + i; x = b.bx - TS; y = b.by + BS - P * (i + 1) + 1; TABLES[n] = { n: n, x: x, y: y, w: TS, h: TL, acc: [L, y + TL / 2], edge: [x, y + TL / 2], seg: 'v' }; }
+    for (i = 0; i < 3; i++) { n = b.start + 3 + i; x = b.bx + P * i + 1; y = b.by - TS; TABLES[n] = { n: n, x: x, y: y, w: TL, h: TS, acc: [x + TL / 2, T], edge: [x + TL / 2, y], seg: 'h' }; }
+    for (i = 0; i < 3; i++) { n = b.start + 6 + i; x = b.bx + BS; y = b.by + P * i + 1; TABLES[n] = { n: n, x: x, y: y, w: TS, h: TL, acc: [R, y + TL / 2], edge: [x + TS, y + TL / 2], seg: 'v' }; }
+    for (i = 0; i < 3; i++) { n = b.start + 9 + i; x = b.bx + BS - P * (i + 1) + 1; y = b.by + BS; TABLES[n] = { n: n, x: x, y: y, w: TL, h: TS, acc: [x + TL / 2, B], edge: [x + TL / 2, y + TS], seg: 'h' }; }
+  });
+  for (var wi = 0; wi < 10; wi++) { var wn = 49 + wi, wx = 146 + wi * 24, wy = 26; TABLES[wn] = { n: wn, x: wx, y: wy, w: TL, h: TS, acc: [wx + TL / 2, AY[0]], edge: [wx + TL / 2, wy + TS], seg: 'h' }; }
+  var ALL_TABLES = Object.keys(TABLES).map(Number).sort(function (a, b) { return a - b; });
+
+  var NODES = {};
+  AX.forEach(function (x) { AY.forEach(function (y) { NODES[x + ',' + y] = [x, y]; }); });
+  NODES.E = [273, 468];
+  var EDGES = {};
+  function dist(p, q) { return Math.abs(p[0] - q[0]) + Math.abs(p[1] - q[1]); }
+  function link(a, b) { var d = dist(NODES[a], NODES[b]); (EDGES[a] = EDGES[a] || []).push([b, d]); (EDGES[b] = EDGES[b] || []).push([a, d]); }
+  AY.forEach(function (y) { for (var i = 0; i < 2; i++) link(AX[i] + ',' + y, AX[i + 1] + ',' + y); });
+  AX.forEach(function (x) { for (var i = 0; i < 2; i++) link(x + ',' + AY[i], x + ',' + AY[i + 1]); });
+  link('E', '273,' + AY[2]);
+
+  function dijkstra(src) {
+    var d = {}, prev = {}, left = Object.keys(NODES);
+    left.forEach(function (k) { d[k] = Infinity; }); d[src] = 0;
+    while (left.length) {
+      left.sort(function (a, b) { return d[a] - d[b]; });
+      var u = left.shift();
+      (EDGES[u] || []).forEach(function (e) { if (d[u] + e[1] < d[e[0]]) { d[e[0]] = d[u] + e[1]; prev[e[0]] = u; } });
+    }
+    return { d: d, prev: prev };
+  }
+  function segEnds(t) {
+    var a = t.acc, i;
+    if (t.seg === 'h') { for (i = 0; i < 2; i++) if (a[0] >= AX[i] && a[0] <= AX[i + 1]) return [AX[i] + ',' + a[1], AX[i + 1] + ',' + a[1]]; }
+    else { for (i = 0; i < 2; i++) if (a[1] >= AY[i] && a[1] <= AY[i + 1]) return [a[0] + ',' + AY[i], a[0] + ',' + AY[i + 1]]; }
+    return null;
+  }
+  // Rute langs gangene fra inngang (fromBooth = null) eller fra et bord, til målbord
+  function route(fromBooth, n) {
+    var t = TABLES[n], tEnds = segEnds(t), starts;
+    if (fromBooth == null) starts = [{ k: 'E', pre: [], c: 0 }];
+    else {
+      var s = TABLES[fromBooth];
+      if (fromBooth === n) return { pts: [s.edge, s.edge], len: 0 };
+      var sEnds = segEnds(s);
+      if (sEnds.join() === tEnds.join()) return { pts: [s.edge, s.acc, t.acc, t.edge], len: dist(s.edge, s.acc) + dist(s.acc, t.acc) + dist(t.acc, t.edge) };
+      starts = sEnds.map(function (k) { return { k: k, pre: [s.edge, s.acc], c: dist(s.edge, s.acc) + dist(s.acc, NODES[k]) }; });
+    }
+    var best = null;
+    starts.forEach(function (st) {
+      var g = dijkstra(st.k);
+      tEnds.forEach(function (te) {
+        var c = st.c + g.d[te] + dist(NODES[te], t.acc);
+        if (!best || c < best.c) best = { c: c, st: st, te: te, g: g };
+      });
+    });
+    var path = [], k = best.te;
+    while (k) { path.unshift(NODES[k]); k = best.g.prev[k]; }
+    return { pts: best.st.pre.concat(path, [t.acc, t.edge]), len: best.c + dist(t.acc, t.edge) };
+  }
+
+  /* ===== DEMO-BILDER (genererte SVG-plassholdere, merket DEMO) ===== */
+  function demoImg(title, sub, c1, c2, slabLabel) {
+    var t = esc(title).slice(0, 26), s = esc(sub || ''), H = slabLabel ? 400 : 336, cx = slabLabel ? 98 : 120;
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="' + H + '" viewBox="0 0 240 ' + H + '">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c1 + '"/><stop offset="1" stop-color="' + c2 + '"/></linearGradient></defs>' +
+      (slabLabel ? '<rect width="240" height="400" rx="14" fill="#dfe3ea"/><rect x="12" y="12" width="216" height="52" rx="6" fill="#fff" stroke="#b91c1c" stroke-width="3"/>' +
+        '<text x="22" y="34" font-family="Arial" font-size="12" font-weight="700" fill="#111">' + esc(slabLabel) + '</text><text x="22" y="54" font-family="Arial" font-size="11" fill="#444">' + t + '</text><g transform="translate(22 76)">' : '<g>') +
+      '<rect width="' + (slabLabel ? 196 : 240) + '" height="' + (slabLabel ? 300 : 336) + '" rx="12" fill="url(#g)"/>' +
+      '<circle cx="' + cx + '" cy="130" r="54" fill="rgba(255,255,255,.25)"/>' +
+      '<text x="' + cx + '" y="140" text-anchor="middle" font-family="Arial" font-size="30" font-weight="800" fill="rgba(255,255,255,.9)">DEMO</text>' +
+      (slabLabel ? '' : '<text x="120" y="246" text-anchor="middle" font-family="Arial" font-size="15" font-weight="700" fill="#fff">' + t + '</text>') +
+      '<text x="' + cx + '" y="272" text-anchor="middle" font-family="Arial" font-size="12" fill="rgba(255,255,255,.85)">' + s + '</text></g></svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  /* ===== EKSEMPELDATA ===== */
+  var CM = 'https://www.cardmarket.com/en/Pokemon', CL = 'https://collectr.com/';
+  function contact(p, e, ig, sp, se, si) { return { phone: p, email: e, ig: ig, show: { phone: sp, email: se, ig: si } }; }
+  var S = {
+    ev: { name: 'Oslo TCG Show', date: '2026-11-14', place: 'Oslo Kongressenter, hall B' },
+    vendors: [
+      { id: 'v1', name: 'Nordic Cards', booth: 5, code: 'OTS-05-K7Q4', loggedIn: true, bio: 'Pokémon-singles og graderte kort. Fokus på moderne sett og alt-arts.', c: contact('400 00 001', 'nordiccards@example.no', '@nordiccards.demo', true, true, true) },
+      { id: 'v2', name: 'Binder Bros', booth: 8, code: 'OTS-08-M2XR', loggedIn: true, bio: 'To brødre med permene fulle av Eeveelutions og Evolving Skies.', c: contact('400 00 002', 'binderbros@example.no', '@binderbros.demo', false, true, true) },
+      { id: 'v3', name: 'Pixel Packs', booth: 16, code: 'OTS-16-P9DW', loggedIn: true, bio: 'Retro Yu-Gi-Oh og Pokémon fra WotC-æraen.', c: contact('400 00 003', 'pixelpacks@example.no', '@pixelpacks.demo', false, true, false) },
+      { id: 'v4', name: 'Legend Vault', booth: 21, code: 'OTS-21-L4VT', loggedIn: true, bio: 'Vintage MTG og high-end singles (demo-samling).', c: contact('400 00 004', 'legendvault@example.no', '@legendvault.demo', true, false, false) },
+      { id: 'v5', name: 'Draugen Spillsenter', booth: 29, code: 'OTS-29-D8GN', loggedIn: true, bio: 'Spillbutikk med sealed Digimon og One Piece.', c: contact('400 00 005', 'draugen@example.no', '@draugen.demo', true, true, false) },
+      { id: 'v6', name: 'Cardhaven', booth: 33, code: 'OTS-33-C3HV', loggedIn: true, bio: 'Lorcana og promoer. Glad i å prate kort.', c: contact('400 00 006', 'cardhaven@example.no', '@cardhaven.demo', false, false, true) },
+      { id: 'v7', name: 'Mega Mox', booth: 40, code: 'OTS-40-X5MB', loggedIn: true, bio: 'Commander-staples til hverdagspriser. Store bulk-kasser.', c: contact('400 00 007', 'megamox@example.no', '@megamox.demo', false, true, true) },
+      { id: 'v8', name: 'Sealed Only', booth: 52, code: 'OTS-52-S6QZ', loggedIn: true, bio: 'Kun forseglede produkter: booster boxes, ETB-er og cases.', c: contact('400 00 008', 'sealedonly@example.no', '@sealedonly.demo', false, true, false) },
+      { id: 'v9', name: 'Kortkjelleren', booth: 18, code: 'OTS-18-R7KJ', loggedIn: false, bio: '', c: contact('', '', '', false, false, false) },
+      { id: 'v10', name: 'Troll TCG', booth: 44, code: 'OTS-44-T2FN', loggedIn: true, bio: 'Nye på messa i år.', c: contact('', '', '', false, false, false) }
+    ],
+    items: [
+      { id: 'i1', v: 'v1', name: 'Charizard ex (151)', kind: 'raw', cond: 'Near Mint', price: 890, link: 'cardmarket', images: [demoImg('Charizard ex (151)', 'Eksempelbilde', '#f97316', '#b91c1c')] },
+      { id: 'i2', v: 'v1', name: 'Pikachu Illustrator (proxy/demo)', kind: 'raw', cond: 'NM', price: 1200, link: 'collectr', images: [] },
+      { id: 'i3', v: 'v2', name: 'Umbreon VMAX (Evolving Skies)', kind: 'raw', cond: 'Lightly Played', price: 450, images: [demoImg('Umbreon VMAX', 'Eksempelbilde', '#312e81', '#0f172a')] },
+      { id: 'i4', v: 'v4', name: 'Black Lotus (Alpha, demo)', kind: 'raw', cond: 'NM', price: null, link: 'cardmarket', images: [] },
+      { id: 'i5', v: 'v8', name: 'One Piece OP-05 booster box', kind: 'sealed', cond: 'Sealed', price: 1450, images: [demoImg('OP-05 booster box', 'Eksempelbilde', '#dc2626', '#1e3a8a')] },
+      { id: 'i6', v: 'v6', name: 'Lorcana Elsa (promo)', kind: 'raw', cond: 'NM', price: 320, images: [] },
+      { id: 'i7', v: 'v3', name: 'Yu-Gi-Oh Blue-Eyes White Dragon (LOB)', kind: 'raw', cond: 'LP', price: 180, images: [] },
+      { id: 'i8', v: 'v7', name: 'MTG Sol Ring (Commander Masters)', kind: 'raw', cond: 'NM', price: 25, images: [demoImg('Sol Ring', 'Eksempelbilde', '#78716c', '#292524')] },
+      { id: 'i9', v: 'v8', name: 'Pokémon ETB Ascended Heroes', kind: 'sealed', cond: 'Sealed', price: 799, images: [] },
+      { id: 'i10', v: 'v5', name: 'Digimon BT-14 case', kind: 'sealed', cond: 'Sealed', price: 2100, images: [] }
+    ],
+    session: null, pos: null, target: null, picking: false, vSel: null, zoom: 1.2, arrFilter: 'vendor', uid: 100
+  };
+  var LINKS = { cardmarket: ['Cardmarket', CM], collectr: ['Collectr', CL] };
+  /* Eksempelkatalog (demo): raw og sealed med sett og nummer */
+  var CATALOG = [
+    { name: 'Charizard ex', set: '151', no: '199/165', kind: 'raw', game: 'Pokémon', c: ['#f97316', '#b91c1c'] },
+    { name: 'Charizard ex', set: 'Obsidian Flames', no: '223/197', kind: 'raw', game: 'Pokémon', c: ['#ea580c', '#1f2937'] },
+    { name: 'Mewtwo ex', set: '151', no: '193/165', kind: 'raw', game: 'Pokémon', c: ['#a855f7', '#312e81'] },
+    { name: 'Pikachu ex', set: 'Surging Sparks', no: '238/191', kind: 'raw', game: 'Pokémon', c: ['#facc15', '#b45309'] },
+    { name: 'Umbreon VMAX Alt Art', set: 'Evolving Skies', no: '215/203', kind: 'raw', game: 'Pokémon', c: ['#312e81', '#0f172a'] },
+    { name: 'Lugia V Alt Art', set: 'Silver Tempest', no: '186/195', kind: 'raw', game: 'Pokémon', c: ['#94a3b8', '#1e3a8a'] },
+    { name: 'Sol Ring', set: 'Commander Masters', no: '410', kind: 'raw', game: 'Magic', c: ['#78716c', '#292524'] },
+    { name: 'The One Ring', set: 'LOTR: Tales of Middle-earth', no: '246', kind: 'raw', game: 'Magic', c: ['#ca8a04', '#422006'] },
+    { name: 'Blue-Eyes White Dragon', set: 'Legend of Blue Eyes', no: 'LOB-001', kind: 'raw', game: 'Yu-Gi-Oh', c: ['#38bdf8', '#1e3a8a'] },
+    { name: 'Elsa – Spirit of Winter', set: 'The First Chapter', no: '207/204', kind: 'raw', game: 'Lorcana', c: ['#67e8f9', '#1e40af'] },
+    { name: 'Monkey D. Luffy (leader)', set: 'OP-05 Awakening of the New Era', no: 'OP05-060', kind: 'raw', game: 'One Piece', c: ['#ef4444', '#7f1d1d'] },
+    { name: 'OP-05 booster box', set: 'Awakening of the New Era', no: 'OP-05', kind: 'sealed', game: 'One Piece', c: ['#dc2626', '#1e3a8a'] },
+    { name: 'Elite Trainer Box', set: 'Ascended Heroes', no: 'ETB', kind: 'sealed', game: 'Pokémon', c: ['#0ea5e9', '#1e293b'] },
+    { name: 'Booster bundle', set: '151', no: '6 pk', kind: 'sealed', game: 'Pokémon', c: ['#f43f5e', '#1e293b'] },
+    { name: 'BT-14 case', set: 'Blast Ace', no: 'BT-14', kind: 'sealed', game: 'Digimon', c: ['#2563eb', '#0f172a'] },
+    { name: 'Play Booster box', set: 'Foundations', no: 'FDN', kind: 'sealed', game: 'Magic', c: ['#16a34a', '#14532d'] }
+  ];
+  /* Simulert kameraskann av slab (demo): forslag fra flere selskaper */
+  var SLAB_SCAN = [
+    { cat: 0, company: 'PSA', grade: 'PSA 10 GEM MT', cert: '84512377' },
+    { cat: 2, company: 'CGC', grade: 'CGC 9.5 Mint+', cert: '4123456001' },
+    { cat: 3, company: 'TAG', grade: 'TAG 10 Pristine', cert: 'T0A3F92K' },
+    { cat: 4, company: 'BGS', grade: 'BGS 9.5 Gem Mint', cert: '0012345678' },
+    { cat: 5, company: 'ACE', grade: 'ACE 10 Gem Mint', cert: 'ACE-0098123' }
+  ];
+  /* Fiktive «offisielle sider» for TAG og CGC (demo-URL-er, ingen ekte oppslag) */
+  var OFFICIAL_URL = { TAG: 'https://example.com/demo/tag-verify?cert=', CGC: 'https://example.com/demo/cgc-verify?cert=' };
+  var catImgCache = {};
+  function catImg(i, sub) { var k = i + '|' + (sub || ''); if (!catImgCache[k]) { var c = CATALOG[i]; catImgCache[k] = demoImg(c.name, sub || 'Plassholder · demo', c.c[0], c.c[1]); } return catImgCache[k]; }
+  function catLine(c) { return c.set + ' · ' + (c.kind === 'sealed' ? c.no : '#' + c.no); }
+
+  function vByBooth(n) { return find(S.vendors, function (v) { return v.booth === n; }); }
+  function vById(id) { return find(S.vendors, function (v) { return v.id === id; }); }
+  function itemsOf(id) { return S.items.filter(function (i) { return i.v === id; }); }
+  function isActive(v) { return !!(v && v.loggedIn); }
+  function statusOf(n) {
+    var v = vByBooth(n);
+    if (!v || !v.code) return ['none', 'Ingen kode'];
+    if (!v.loggedIn) return ['sent', 'Kode sendt'];
+    if (itemsOf(v.id).length) return ['items', 'Varer lagt inn'];
+    return ['in', 'Innlogget'];
+  }
+  function price(it) { return it.price == null ? 'Pris ved bordet' : Number(it.price).toLocaleString('nb-NO') + ' kr'; }
+  function condLine(it) { return it.kind === 'slab' && it.slab ? it.slab.grade + ' · slab' : (it.cond || ''); }
+  function dateLine() { var s = new Date(S.ev.date + 'T12:00:00').toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); return s.charAt(0).toUpperCase() + s.slice(1); }
+  function toast(m) { var t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove('show'); }, 2300); }
+  function copy(text) {
+    var done = function () { toast('Kode kopiert: ' + text); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, done);
+    else { var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); done(); }
+  }
+  var CH = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  function newCode(n) { var s = ''; for (var i = 0; i < 4; i++) s += CH[Math.floor(Math.random() * CH.length)]; return 'OTS-' + (n < 10 ? '0' : '') + n + '-' + s; }
+  function openSheet(id) { $('#' + id).classList.add('open'); }
+  function closeSheet(id) { $('#' + id).classList.remove('open'); if (id === 'sh-vinfo' && S.vSel) { S.vSel = null; if (current === 'vendor-kart') renderVendorMap(); } }
+
+  /* ===== TEMA ===== */
+  function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); $$('[data-theme-btn]').forEach(function (b) { b.textContent = t === 'dark' ? '☀️' : '🌙'; b.setAttribute('aria-label', t === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus'); }); }
+  function toggleTheme() { var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; try { localStorage.setItem('messekart-theme', t); } catch (e) {} applyTheme(t); }
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) { var saved = null; try { saved = localStorage.getItem('messekart-theme'); } catch (x) {} if (!saved) applyTheme(e.matches ? 'dark' : 'light'); });
+  $$('.screen').forEach(function (sc) {
+    var bar = document.createElement('header'); bar.className = 'topbar';
+    bar.innerHTML = (sc.getAttribute('data-back') ? '<button class="icon-btn" data-back aria-label="Tilbake">←</button>' : '<span style="width:4px"></span>') +
+      '<div class="t"><b data-t>' + esc(sc.getAttribute('data-title')) + '</b><small data-sub>' + esc(sc.getAttribute('data-sub')) + '</small></div>' +
+      '<span class="demo-badge">Eksempeldata</span><button class="icon-btn" data-theme-btn></button>';
+    sc.insertBefore(bar, sc.firstChild);
+  });
+  applyTheme(document.documentElement.getAttribute('data-theme'));
+
+  /* ===== KART (SVG) ===== */
+  function door(x, y, orient, label, lx, ly) {
+    var s = '';
+    if (orient === 'h') s += '<line class="doorgap" x1="' + (x - 22) + '" y1="' + y + '" x2="' + (x + 22) + '" y2="' + y + '"/><path class="door" d="M' + (x - 22) + ',' + y + ' a22,22 0 0,1 22,-22 M' + (x + 22) + ',' + y + ' a22,22 0 0,0 -22,-22"/>';
+    else s += '<line class="doorgap" x1="' + x + '" y1="' + (y - 22) + '" x2="' + x + '" y2="' + (y + 22) + '"/><path class="door" d="M' + x + ',' + (y - 22) + ' a22,22 0 0,1 22,22 M' + x + ',' + (y + 22) + ' a22,22 0 0,0 22,-22"/>';
+    return s + '<text class="door-l" x="' + lx + '" y="' + ly + '" text-anchor="middle">' + label + '</text>';
+  }
+  function zone(x, y, w, h, label) {
+    var lines = label.split('|'), s = '<rect class="zone" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4"/>';
+    lines.forEach(function (ln, i) { s += '<text class="zone-l" x="' + (x + w / 2) + '" y="' + (y + h / 2 + 4 + (i - (lines.length - 1) / 2) * 12) + '" text-anchor="middle">' + ln + '</text>'; });
+    return s;
+  }
+  // o: { own, selected, target, clickable, pickAll, route, you:[x,y] }
+  function mapSVG(o) {
+    var W = 640, H = 500, z = S.zoom;
+    var s = '<svg class="svg-map" viewBox="0 0 ' + W + ' ' + H + '" width="' + Math.round(W * z) + '" height="' + Math.round(H * z) + '" role="img" aria-label="Hallkart Oslo TCG Show">';
+    s += '<rect class="floor" width="' + W + '" height="' + H + '"/><rect class="wall" x="20" y="16" width="600" height="458" rx="2"/>';
+    s += zone(470, 34, 136, 80, 'SCENE') + zone(470, 132, 136, 46, 'INFO /|ARRANGØR') + zone(546, 250, 60, 76, 'WC') + zone(34, 404, 150, 56, 'TRADE|CORNER') + zone(380, 404, 226, 56, 'MAT / KAFÉ');
+    s += door(273, 474, 'h', 'HOVEDINNGANG', 273, 492) + door(20, 228, 'v', 'UTGANG', 44, 262);
+    s += '<line class="doorgap" x1="620" y1="368" x2="620" y2="412"/><path class="door" d="M620,368 a22,22 0 0,0 -22,22 M620,412 a22,22 0 0,1 -22,-22"/><text class="door-l" x="604" y="360" text-anchor="end">NØDUTGANG</text>';
+    BLOCKS.forEach(function (b) { s += '<rect class="block" x="' + b.bx + '" y="' + b.by + '" width="' + BS + '" height="' + BS + '" rx="3"/><text class="block-l" x="' + (b.bx + BS / 2) + '" y="' + (b.by + BS / 2 + 5) + '" text-anchor="middle">' + b.start + '–' + (b.start + 11) + '</text>'; });
+    s += '<text class="block-l" x="264" y="60" text-anchor="middle" style="font-size:9px">49–58 · VEGGBORD</text>';
+    ALL_TABLES.forEach(function (n) {
+      var t = TABLES[n], v = vByBooth(n), cls = 'tb';
+      if (isActive(v)) cls += ' v';
+      if (o.own === n || o.target === n) cls += ' hl';
+      if (o.selected === n) cls += ' sel';
+      if (o.pickAll || (o.clickable && isActive(v))) cls += ' click';
+      s += '<g class="' + cls + '" data-booth="' + n + '"><title>Bord ' + n + (isActive(v) ? ' – ' + esc(v.name) : ' – ledig') + '</title><rect x="' + t.x + '" y="' + t.y + '" width="' + t.w + '" height="' + t.h + '" rx="1.5"/><text x="' + (t.x + t.w / 2) + '" y="' + (t.y + t.h / 2 + 2.5) + '" text-anchor="middle">' + n + '</text></g>';
+    });
+    if (o.route) { var pts = o.route.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' '); s += '<polyline class="route-bg" points="' + pts + '"/><polyline class="route" id="route-line" points="' + pts + '"/>'; }
+    if (o.target) { var h = TABLES[o.target]; s += '<circle class="pulse" cx="' + (h.x + h.w / 2) + '" cy="' + (h.y + h.h / 2) + '" r="14"><animate attributeName="r" values="12;24;12" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.15;1" dur="1.6s" repeatCount="indefinite"/></circle>'; }
+    if (o.selected) { var q = TABLES[o.selected]; s += '<rect class="sel-ring" x="' + (q.x - 4) + '" y="' + (q.y - 4) + '" width="' + (q.w + 8) + '" height="' + (q.h + 8) + '" rx="4"/>'; }
+    if (o.you) {
+      var y = o.you;
+      s += '<circle class="you" id="you-dot" cx="' + y[0] + '" cy="' + y[1] + '" r="7"/>';
+      s += '<text class="you-l" x="' + (y[0] > 400 ? y[0] - 11 : y[0] + 11) + '" y="' + (y[1] + 4) + '" text-anchor="' + (y[0] > 400 ? 'end' : 'start') + '">Du er her</text>';
+    }
+    return s + '</svg>';
+  }
+  function centerOn(sc, pts) {
+    var xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; });
+    var cx = (Math.min.apply(0, xs) + Math.max.apply(0, xs)) / 2, cy = (Math.min.apply(0, ys) + Math.max.apply(0, ys)) / 2;
+    sc.scrollLeft = Math.max(0, cx * S.zoom - sc.clientWidth / 2); sc.scrollTop = Math.max(0, cy * S.zoom - sc.clientHeight / 2);
+  }
+  function tc(n) { var t = TABLES[n]; return [t.x + t.w / 2, t.y + t.h / 2]; }
+
+  /* ===== NAVIGASJON ===== */
+  var current = 'start';
+  function go(h) { if (location.hash === '#' + h) render(); else location.hash = h; }
+  function render() {
+    var h = (location.hash || '#start').slice(1).split('/'), name = h[0] || 'start', arg = h[1] ? Number(h[1]) : null;
+    if (!document.getElementById('s-' + name)) name = 'start';
+    if (/^vendor-(home|kart|profil)$/.test(name) && !S.session) { go('vendor-login'); return; }
+    if (current !== name) { $$('.sheet-bg.open').forEach(function (b) { b.classList.remove('open'); }); if (name !== 'vendor-kart') S.vSel = null; if (name !== 'kart') setPicking(false); }
+    current = name;
+    $$('.screen').forEach(function (s) { s.classList.remove('active'); });
+    $('#s-' + name).classList.add('active');
+    if (VIEWS[name]) VIEWS[name](arg);
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', render);
+  document.addEventListener('click', function (e) {
+    var g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); go(g.getAttribute('data-go')); return; }
+    if (e.target.closest('button[data-back]')) { var sc = e.target.closest('.screen'); go(sc.getAttribute('data-back-dyn') || sc.getAttribute('data-back')); return; }
+    if (e.target.closest('[data-theme-btn]')) { toggleTheme(); return; }
+    var cl = e.target.closest('[data-close]'); if (cl) { closeSheet(cl.closest('.sheet-bg').id); return; }
+    if (e.target.classList && e.target.classList.contains('sheet-bg') && !e.target.classList.contains('peek')) { closeSheet(e.target.id); return; }
+    var zb = e.target.closest('[data-zoom]');
+    if (zb) { S.zoom = Math.min(2.4, Math.max(0.6, +(S.zoom + Number(zb.getAttribute('data-zoom')) * 0.3).toFixed(2))); if (current === 'vendor-kart') renderVendorMap(); else if (VIEWS[current]) VIEWS[current](S.target); }
+  });
+
+  function itemRow(it, opts) {
+    var img = it.images && it.images.length ? '<img class="thumb" src="' + it.images[0] + '" alt="">' : '<div class="thumb ph">🃏</div>';
+    var extra = '';
+    if (opts.edit) extra = '<div class="acts"><button class="link-btn" data-edit="' + it.id + '">Rediger</button><button class="link-btn danger" data-del="' + it.id + '">Slett</button></div>';
+    if (opts.links && it.link) extra += '<a class="ext" href="' + LINKS[it.link][1] + '" target="_blank" rel="noopener">Åpne på ' + LINKS[it.link][0] + ' ↗</a>';
+    if (opts.allThumbs && it.images && it.images.length > 1) extra += '<div class="thumbs">' + it.images.slice(1).map(function (u) { return '<img src="' + u + '" alt="">'; }).join('') + '</div>';
+    return '<div class="item">' + img + '<div class="body"><div class="nm">' + esc(it.name) + '</div><div class="cd">' + esc(condLine(it)) + '</div>' + extra + '</div><div class="pr">' + esc(price(it)) + '</div></div>';
+  }
+  var VIEWS = {
+    start: function () { $('[data-event-line]').textContent = dateLine() + ' · ' + S.ev.place; },
+    'arr-messe': function () { $('#ev-name').value = S.ev.name; $('#ev-date').value = S.ev.date; $('#ev-place').value = S.ev.place; },
+    'arr-bord': function () { renderArrList(); },
+    'vendor-login': function () { $('#v-err').classList.remove('show'); },
+    'vendor-home': function () {
+      var v = vById(S.session), its = itemsOf(v.id);
+      $('#vh-name').textContent = v.name; $('#vh-booth').textContent = 'Bord ' + v.booth;
+      $('#vh-items').innerHTML = its.length ? its.map(function (it) { return itemRow(it, { edit: true }); }).join('') : '<div class="empty">Ingen varer ennå.<br>Trykk «Legg til vare».</div>';
+    },
+    'vendor-profil': function () {
+      var v = vById(S.session);
+      $('#pf-bio').value = v.bio || ''; $('#pf-phone').value = v.c.phone; $('#pf-email').value = v.c.email; $('#pf-ig').value = v.c.ig;
+      $('#pf-show-phone').checked = v.c.show.phone; $('#pf-show-email').checked = v.c.show.email; $('#pf-show-ig').checked = v.c.show.ig;
+    },
+    'vendor-kart': function () { renderVendorMap(true); },
+    kart: function (n) {
+      if (n && TABLES[n]) S.target = n; else if (!n) S.target = null;
+      var r = S.target ? route(S.pos, S.target) : null;
+      var you = S.pos == null ? NODES.E : TABLES[S.pos].acc;
+      var sc = $('#k-scroll');
+      sc.innerHTML = mapSVG({ clickable: true, pickAll: S.picking, target: S.target, route: r, you: you });
+      $('#k-you').textContent = '📍 Du er her: ' + (S.pos == null ? 'Inngangen' : 'Bord ' + S.pos);
+      var tv = S.target && vByBooth(S.target);
+      $('#k-target').innerHTML = S.target && !S.picking ?
+        '<div class="target"><div class="row-top"><b>Bord ' + S.target + (tv ? ' · ' + esc(tv.name) : '') + '</b><span class="muted small">ca. ' + Math.round(r.len / 10) + ' m</span></div>' +
+        '<p class="muted small" style="margin:4px 0 12px">Fra ' + (S.pos == null ? 'inngangen' : 'bord ' + S.pos) + '. Følg den oransje linjen langs gangene.</p>' +
+        '<div style="display:flex;gap:10px"><button class="btn btn-primary btn-sm" style="flex:1" data-go="bord/' + S.target + '">Se varer</button><button class="btn btn-secondary btn-sm" data-go="kart">Fjern rute</button></div></div>' : '';
+      requestAnimationFrame(function () { if (r) centerOn(sc, r.pts); else centerOn(sc, [you]); });
+    },
+    sok: function () { renderSearch(); setTimeout(function () { $('#q').focus(); }, 50); },
+    bord: function (n) {
+      var v = vByBooth(n), sc = $('#s-bord');
+      sc.setAttribute('data-back-dyn', 'kart' + (S.target ? '/' + S.target : ''));
+      $('[data-t]', sc).textContent = 'Bord ' + n; $('[data-sub]', sc).textContent = v ? v.name : 'Ledig';
+      $('#b-name').textContent = v ? v.name : 'Ledig bord'; $('#b-booth').textContent = 'Bord ' + n;
+      $('#b-bio').textContent = v && v.bio ? v.bio : '';
+      $('#btn-route').setAttribute('data-go', 'kart/' + n);
+      var its = v ? itemsOf(v.id) : [];
+      // Kjøpervisning: ALDRI kontaktinfo
+      $('#b-items').innerHTML = its.length ? its.map(function (it) { return itemRow(it, { links: true, allThumbs: true }); }).join('') : '<div class="empty">Ingen varer listet.</div>';
+    }
+  };
+
+  /* ===== ARRANGØR ===== */
+  $('#btn-ev-save').addEventListener('click', function () { S.ev.name = $('#ev-name').value.trim() || S.ev.name; S.ev.date = $('#ev-date').value || S.ev.date; S.ev.place = $('#ev-place').value.trim() || S.ev.place; toast('Messe lagret'); go('arr-bord'); });
+  $('#arr-q').addEventListener('input', renderArrList);
+  $('#arr-seg').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; S.arrFilter = b.getAttribute('data-f'); $$('#arr-seg button').forEach(function (x) { x.classList.toggle('on', x === b); }); renderArrList(); });
+  function renderArrList() {
+    var q = $('#arr-q').value.trim().toLowerCase(), counts = { items: 0, in: 0, sent: 0, none: 0 };
+    ALL_TABLES.forEach(function (n) { counts[statusOf(n)[0]]++; });
+    $('#arr-seg [data-f=vendor]').textContent = 'Med vendor (' + (ALL_TABLES.length - counts.none) + ')';
+    $('#arr-seg [data-f=all]').textContent = 'Alle bord (' + ALL_TABLES.length + ')';
+    $('#arr-summary').textContent = counts.items + ' med varer · ' + counts.in + ' innlogget · ' + counts.sent + ' kode sendt · ' + counts.none + ' uten kode';
+    var rows = ALL_TABLES.filter(function (n) { var v = vByBooth(n); if (S.arrFilter === 'vendor' && !v && !q) return false; if (!q) return true; return String(n).indexOf(q) === 0 || (v && v.name.toLowerCase().indexOf(q) >= 0); });
+    $('#arr-list').innerHTML = rows.length ? rows.map(function (n) {
+      var v = vByBooth(n), st = statusOf(n);
+      return '<li class="row"><div class="row-top"><b>Bord ' + n + ' <span class="muted" style="font-weight:500">· ' + (v ? esc(v.name) : 'Ledig') + '</span></b><span class="status st-' + st[0] + '">' + st[1] + '</span></div>' +
+        '<div class="row-bot"><span class="mono ' + (v ? '' : 'muted') + '">' + (v ? v.code : '—') + '</span>' +
+        (v ? '<button class="btn btn-secondary btn-sm" data-copy="' + v.code + '">Kopier kode</button>' : '<button class="btn btn-primary btn-sm" data-gen="' + n + '">Generer kode</button>') + '</div></li>';
+    }).join('') : '<li class="empty">Ingen bord matcher «' + esc(q) + '»</li>';
+  }
+  var genBooth = null;
+  $('#arr-list').addEventListener('click', function (e) {
+    var c = e.target.closest('[data-copy]'); if (c) { copy(c.getAttribute('data-copy')); return; }
+    var g = e.target.closest('[data-gen]'); if (g) { genBooth = Number(g.getAttribute('data-gen')); $('#gen-title').textContent = 'Generer kode for bord ' + genBooth; $('#gen-name').value = ''; openSheet('sh-gen'); }
+  });
+  $('#btn-gen-ok').addEventListener('click', function () {
+    var name = $('#gen-name').value.trim(); if (!name) { toast('Skriv inn vendornavn'); return; }
+    var code = newCode(genBooth);
+    S.vendors.push({ id: 'v' + (++S.uid), name: name, booth: genBooth, code: code, loggedIn: false, bio: '', c: contact('', '', '', false, false, false) });
+    closeSheet('sh-gen'); toast('Kode generert: ' + code); renderArrList();
+  });
+
+  /* ===== VENDOR: innlogging og profil ===== */
+  $('#btn-v-demo').addEventListener('click', function () { $('#v-code').value = 'OTS-05-K7Q4'; $('#v-err').classList.remove('show'); });
+  $('#v-code').addEventListener('input', function () { $('#v-err').classList.remove('show'); });
+  function doLogin() {
+    var raw = $('#v-code').value.trim().toUpperCase().replace(/\s+/g, ''), err = $('#v-err');
+    if (!raw) { err.textContent = 'Skriv inn koden du har fått fra arrangøren.'; err.classList.add('show'); return; }
+    if (!/^OTS-\d{2}-[A-Z0-9]{4}$/.test(raw)) { err.textContent = 'Feil format. Koden ser slik ut: OTS-12-K7Q4.'; err.classList.add('show'); return; }
+    var v = find(S.vendors, function (x) { return x.code === raw; });
+    if (!v) { err.textContent = 'Ugyldig kode. Sjekk koden, eller kontakt arrangøren.'; err.classList.add('show'); return; }
+    v.loggedIn = true; S.session = v.id; $('#v-code').value = ''; toast('Innlogget som ' + v.name); go('vendor-home');
+  }
+  $('#btn-v-login').addEventListener('click', doLogin);
+  $('#v-code').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+  $('#btn-logout').addEventListener('click', function () { S.session = null; toast('Logget ut'); go('start'); });
+  $('#btn-pf-save').addEventListener('click', function () {
+    var v = vById(S.session);
+    v.bio = $('#pf-bio').value.trim();
+    v.c.phone = $('#pf-phone').value.trim(); v.c.email = $('#pf-email').value.trim(); v.c.ig = $('#pf-ig').value.trim();
+    v.c.show = { phone: $('#pf-show-phone').checked, email: $('#pf-show-email').checked, ig: $('#pf-show-ig').checked };
+    toast('Profil lagret'); go('vendor-home');
+  });
+
+  /* ===== VENDOR: kart med andre vendors ===== */
+  function renderVendorMap(recenter) {
+    var v = vById(S.session), sc = $('#vk-scroll'), keep = [sc.scrollLeft, sc.scrollTop];
+    sc.innerHTML = mapSVG({ own: v.booth, selected: S.vSel, clickable: true });
+    $('#vk-caption').textContent = S.vSel ? '' : 'Ditt bord (' + v.booth + ') er gult. Trykk på et annet bord for å se vendor.';
+    requestAnimationFrame(function () { if (recenter) centerOn(sc, [tc(v.booth)]); else { sc.scrollLeft = keep[0]; sc.scrollTop = keep[1]; } });
+  }
+  $('#vk-scroll').addEventListener('click', function (e) {
+    var g = e.target.closest('[data-booth]'); if (!g) return;
+    var n = Number(g.getAttribute('data-booth')), me = vById(S.session), v = vByBooth(n);
+    if (n === me.booth) { toast('Dette er ditt bord'); return; }
+    if (!isActive(v)) { toast('Bord ' + n + ' er ledig'); return; }
+    S.vSel = n; renderVendorMap(false); showVendorInfo(v);
+  });
+  function showVendorInfo(v) {
+    var its = itemsOf(v.id), c = v.c, rows = [];
+    if (c.show.phone && c.phone) rows.push('<a href="tel:' + c.phone.replace(/\s/g, '') + '" data-contact="phone">📞 ' + esc(c.phone) + '</a>');
+    if (c.show.email && c.email) rows.push('<a href="mailto:' + esc(c.email) + '" data-contact="email">✉️ ' + esc(c.email) + '</a>');
+    if (c.show.ig && c.ig) rows.push('<a href="https://www.instagram.com/' + esc(c.ig.replace(/^@/, '')) + '" target="_blank" rel="noopener" data-contact="ig">📷 ' + esc(c.ig) + '</a>');
+    $('#vinfo').innerHTML = '<div class="grip"></div><div class="sheet-head"><h3>' + esc(v.name) + ' <span class="status st-sent" style="vertical-align:middle">Bord ' + v.booth + '</span></h3><button class="icon-btn" data-close aria-label="Lukk">✕</button></div>' +
+      (v.bio ? '<p class="muted" id="vi-bio">' + esc(v.bio) + '</p>' : '') +
+      '<div class="sec-title">Kontakt · kun for vendors</div>' +
+      (rows.length ? '<div class="contact">' + rows.join('') + '</div>' : '<p class="muted small">Denne vendoren deler ikke kontaktinfo.</p>') +
+      '<div class="sec-title">Varer (' + its.length + ')</div>' +
+      (its.length ? its.map(function (it) { return itemRow(it, {}); }).join('') : '<p class="muted small">Ingen varer ennå.</p>');
+    openSheet('sh-vinfo');
+  }
+  /* ===== VENDOR: legg til vare – to steg: 1 Finn kortet, 2 Detaljer ===== */
+  var F = null;
+  function newDraft(o) { return Object.assign({ id: null, name: '', set: '', no: '', kind: 'raw', cond: 'Near Mint', price: '', link: '', images: [], slab: null, cat: null, official: false }, o || {}); }
+  function openAdd() { F = { step: 1, q: '', cam: 'idle' }; renderFlow(); openSheet('sh-flow'); }
+  function openEdit(id) {
+    var it = find(S.items, function (i) { return i.id === id; });
+    var own = (it.images || []).filter(function (u) { return !it.officialImgs || it.officialImgs.indexOf(u) < 0; });
+    F = { step: 2, editing: true, draft: newDraft({ id: it.id, name: it.name, set: it.set || '', no: it.no || '', kind: it.kind || 'raw', cond: it.cond, price: it.price == null ? '' : String(it.price), link: it.link || '', images: own, slab: it.slab || null, cat: it.cat == null ? null : it.cat, official: !!(it.officialImgs && it.officialImgs.length) }) };
+    renderFlow(); openSheet('sh-flow');
+  }
+  function head(title, back) {
+    return '<div class="sheet-head">' + (back ? '<button class="icon-btn" data-fback aria-label="Tilbake">←</button>' : '') + '<h3>' + title + '</h3><button class="icon-btn" data-close aria-label="Lukk">✕</button></div>';
+  }
+  function stepper(n, label) {
+    return '<div class="stepper" aria-label="Steg ' + n + ' av 2"><div class="bars"><i class="on"></i><i' + (n === 2 ? ' class="on"' : '') + '></i></div><div class="st-l"><b>Steg ' + n + ' av 2</b> · ' + label + '</div></div>';
+  }
+  function officialImgs(d) {
+    if (!d.slab || d.slab.company !== 'PSA') return [];
+    if (!d._off) { var lbl = 'PSA · ' + d.slab.grade + ' · #' + d.slab.cert; d._off = [demoImg(d.name, 'Offisielt PSA-bilde · DEMO', '#f97316', '#7c2d12', lbl), demoImg(d.name, 'Bakside · DEMO', '#1e3a8a', '#0f172a', lbl)]; }
+    return d._off;
+  }
+  function allImgs(d) { return (d.official ? officialImgs(d) : []).concat(d.images); }
+  function sugRow(attr, i, c, slab) {
+    return '<button class="result sug" ' + attr + '="' + i + '"><img class="thumb" src="' + (slab ? slabThumb(slab) : catImg(slab ? slab.cat : i)) + '" alt=""><span class="grow"><b>' + esc(c.name) + '</b><br><span class="muted small">' + esc(catLine(c)) + '</span>' +
+      (slab ? '<br><span class="tag co">' + esc(slab.company) + '</span> <span class="small grade">' + esc(slab.grade) + '</span>' : '<br><span class="tag">' + (c.kind === 'sealed' ? 'Sealed' : 'Raw') + ' · ' + esc(c.game) + '</span>') + '</span><span class="chev">›</span></button>';
+  }
+  function slabThumb(sl) { var k = 'slab|' + sl.company; if (!catImgCache[k]) { var c = CATALOG[sl.cat]; catImgCache[k] = demoImg(c.name, 'Plassholder · demo', c.c[0], c.c[1], sl.company + ' · ' + sl.grade); } return catImgCache[k]; }
+  function step1HTML() {
+    var h = head('Legg til vare') + stepper(1, 'Finn kortet');
+    if (F.cam === 'scanning') h += '<div class="viewfinder"><span class="vf-demo">DEMO-KAMERA</span><div class="frame"></div><div class="scanline"></div><div class="vf-l">Leser etiketten på slabben …</div></div>';
+    else h += '<button class="cam-btn" id="fl-cam"><span class="cam-ic">📷</span><span><b>Sikt kamera mot slab</b><span class="d">Simulert kamera (demo). Gir forslag du velger fra.</span></span></button>';
+    h += '<div class="or"><span>eller</span></div>' +
+      '<label class="f" style="margin-bottom:8px"><span>Skriv kortnavn</span><div class="search" style="margin:0"><span class="si">🔍</span><input type="search" id="fl-q" placeholder="F.eks. Charizard eller booster box" autocomplete="off" value="' + esc(F.q) + '"></div></label>' +
+      '<div id="fl-res"></div>';
+    return h;
+  }
+  function resultsHTML() {
+    if (F.cam === 'done' && !F.q) {
+      return '<div class="sec-title">Forslag fra kameraet (demo)</div><p class="muted small" style="margin:0 0 4px">Trykk på riktig kort.</p>' +
+        SLAB_SCAN.map(function (sl, i) { return sugRow('data-slab', i, CATALOG[sl.cat], sl); }).join('');
+    }
+    var q = F.q.trim().toLowerCase();
+    if (!q) return '<div class="empty small">Søk dekker raw og sealed i eksempelkatalogen.</div>';
+    var list = [];
+    CATALOG.forEach(function (c, i) { if ((c.name + ' ' + c.set + ' ' + c.no + ' ' + c.game).toLowerCase().indexOf(q) >= 0) list.push(i); });
+    return list.length ? '<div class="sec-title">Forslag</div>' + list.map(function (i) { return sugRow('data-cat', i, CATALOG[i]); }).join('') : '<div class="empty">Ingen treff på «' + esc(F.q) + '» i eksempelkatalogen.</div>';
+  }
+  function renderResults() { var r = $('#fl-res'); if (r) r.innerHTML = resultsHTML(); }
+  function step2HTML() {
+    var d = F.draft, imgs = allImgs(d), co = d.slab ? d.slab.company : null;
+    var h = F.editing ? head('Rediger vare') : head('Legg til vare', true) + stepper(2, 'Detaljer');
+    var thumb = d.cat != null ? (d.slab ? slabThumb(d.slab) : catImg(d.cat)) : (imgs[0] || '');
+    h += '<div class="slab-card">' + (thumb ? '<img src="' + thumb + '" alt="">' : '<div class="thumb ph">🃏</div>') + '<div><div style="font-weight:700">' + esc(d.name) + '</div>' +
+      (d.set ? '<div class="muted small">' + esc(d.set) + (d.no ? ' · ' + (d.kind === 'sealed' ? '' : '#') + esc(d.no) : '') + '</div>' : '') +
+      (d.slab ? '<div style="margin-top:6px"><span class="tag co">' + esc(co) + '</span> <span class="small grade">' + esc(d.slab.grade) + '</span></div><div class="muted small mono">Sert. ' + esc(d.slab.cert) + '</div>' : '<div style="margin-top:6px"><span class="tag">' + (d.kind === 'sealed' ? 'Sealed' : 'Raw') + '</span></div>') + '</div></div>';
+    /* Bilder */
+    h += '<div class="flabel">Bilde av varen (påkrevd)</div>';
+    if (co === 'PSA') {
+      h += '<div class="official' + (d.official ? ' on' : '') + '" id="fl-psa"><div class="off-top"><b>Offisielle PSA-bilder</b><span class="demo-pill">DEMO</span></div>' +
+        '<div class="imgs">' + officialImgs(d).map(function (u) { return '<img src="' + u + '" alt="Offisielt PSA-bilde (demo)">'; }).join('') + '</div>' +
+        '<p class="small muted" style="margin:8px 0 10px">Plassholdere som viser hvordan PSA-bilder kan brukes i stedet for egne.</p>' +
+        '<button class="btn btn-sm ' + (d.official ? 'btn-secondary' : 'btn-outline') + '" id="fl-psa-accept">' + (d.official ? '✓ Bruker offisielle bilder – angre' : 'Bruk offisielle bilder') + '</button></div>';
+    } else if (co === 'TAG' || co === 'CGC') {
+      h += '<div class="notice info" id="fl-offlink">' + co + ' deler ikke bilder her. Du kan sjekke slabben på <a class="ext" id="fl-official" href="' + OFFICIAL_URL[co] + encodeURIComponent(d.slab.cert) + '" target="_blank" rel="noopener">Se på offisiell side ↗</a> <span class="small">(demo-lenke)</span>. Legg inn egne bilder.</div>';
+    } else if (co) {
+      h += '<p class="small muted" style="margin:0 0 10px" id="fl-noofficial">' + co + ' har ingen offisielle bilder. Legg inn egne bilder av slabben.</p>';
+    }
+    h += '<div class="img-edit" id="fd-imgs">' + d.images.map(function (u, i) { return '<div class="im"><img src="' + u + '" alt=""><button class="rm" data-rmimg="' + i + '" aria-label="Fjern bilde">✕</button></div>'; }).join('') + '</div>' +
+      '<div class="btn-row" style="margin-bottom:18px"><label class="btn btn-secondary btn-sm file-btn">📷 Ta bilde<input type="file" accept="image/*" capture="environment" data-img></label>' +
+      '<label class="btn btn-secondary btn-sm file-btn">🖼️ Last opp<input type="file" accept="image/*" multiple data-img></label></div>';
+    /* Tilstand */
+    if (d.slab) h += '<label class="f"><span>Tilstand</span><input id="fd-cond" value="' + esc(d.slab.grade + ' (fra slab)') + '" readonly></label>';
+    else {
+      var opts = d.kind === 'sealed' ? ['Sealed', 'Sealed – skadet emballasje'] : ['Near Mint', 'Lightly Played', 'Moderately Played', 'Heavily Played', 'Damaged'];
+      if (opts.indexOf(d.cond) < 0) opts.unshift(d.cond || opts[0]);
+      h += '<label class="f"><span>Tilstand</span><select id="fd-cond">' + opts.map(function (c) { return '<option' + (c === d.cond ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') + '</select></label>';
+    }
+    h += '<label class="f"><span>Pris i kr (du fyller inn selv)</span><input id="fd-price" inputmode="numeric" autocomplete="off" placeholder="Pris" value="' + esc(d.price) + '"></label>';
+    h += '<label class="f"><span>Lenke (valgfri)</span><select id="fd-link"><option value="">Ingen</option><option value="cardmarket"' + (d.link === 'cardmarket' ? ' selected' : '') + '>Cardmarket</option><option value="collectr"' + (d.link === 'collectr' ? ' selected' : '') + '>Collectr</option></select></label>';
+    var locked = !imgs.length;
+    if (locked) h += '<p class="lock-hint" id="fl-imgreq">🔒 Legg inn minst ett bilde' + (co === 'PSA' ? ' eller bruk de offisielle PSA-bildene' : '') + ' for å lagre.</p>';
+    h += '<div class="err" id="fl-err"></div><button class="btn btn-primary" id="fl-save"' + (locked ? ' disabled' : '') + '>Lagre vare</button>';
+    return h;
+  }
+  function renderFlow() {
+    var el = $('#flow');
+    el.innerHTML = F.step === 1 ? step1HTML() : step2HTML();
+    if (F.step === 1) renderResults();
+    el.scrollTop = 0;
+  }
+  function syncDraft() {
+    if (!F || F.step !== 2) return;
+    var d = F.draft, c = $('#fd-cond');
+    if (c && !d.slab) d.cond = c.value;
+    d.price = $('#fd-price').value; d.link = $('#fd-link').value;
+  }
+  function pickCat(i, slab) {
+    var c = CATALOG[i];
+    F.step = 2;
+    F.draft = newDraft({ name: c.name, set: c.set, no: c.no, kind: slab ? 'slab' : c.kind, cond: slab ? slab.grade : (c.kind === 'sealed' ? 'Sealed' : 'Near Mint'), cat: i,
+      slab: slab ? { company: slab.company, grade: slab.grade, cert: slab.cert } : null });
+    renderFlow();
+  }
+  $('#flow').addEventListener('click', function (e) {
+    var t;
+    if (e.target.closest('#fl-cam')) {
+      F.cam = 'scanning'; F.q = ''; renderFlow();
+      setTimeout(function () { if (F && F.step === 1 && F.cam === 'scanning') { F.cam = 'done'; renderFlow(); } }, 1200);
+      return;
+    }
+    if (e.target.closest('[data-fback]')) { syncDraft(); F.step = 1; renderFlow(); return; }
+    if ((t = e.target.closest('[data-slab]'))) { var sl = SLAB_SCAN[+t.getAttribute('data-slab')]; pickCat(sl.cat, sl); return; }
+    if ((t = e.target.closest('[data-cat]'))) { pickCat(+t.getAttribute('data-cat'), null); return; }
+    if (e.target.closest('#fl-psa-accept')) { syncDraft(); F.draft.official = !F.draft.official; renderFlow(); return; }
+    if ((t = e.target.closest('[data-rmimg]'))) { syncDraft(); F.draft.images.splice(+t.getAttribute('data-rmimg'), 1); renderFlow(); return; }
+    if (e.target.closest('#fl-save')) saveDraft();
+  });
+  $('#flow').addEventListener('input', function (e) { if (e.target.id === 'fl-q') { F.q = e.target.value; renderResults(); } });
+  $('#flow').addEventListener('change', function (e) {
+    if (!e.target.hasAttribute('data-img')) return;
+    syncDraft();
+    Array.prototype.forEach.call(e.target.files || [], function (f) { F.draft.images.push(URL.createObjectURL(f)); });
+    renderFlow(); toast('Bilde lagt til');
+  });
+  function saveDraft() {
+    syncDraft();
+    var d = F.draft, err = $('#fl-err'), imgs = allImgs(d);
+    if (!imgs.length) { err.textContent = 'Legg inn minst ett bilde før du lagrer.'; err.classList.add('show'); return; }
+    var pr = String(d.price).replace(/\s/g, '').replace(',', '.');
+    if (pr !== '' && !(Number(pr) >= 0)) { err.textContent = 'Pris må være et tall.'; err.classList.add('show'); return; }
+    var full = d.name + (d.kind === 'sealed' ? ' (' + d.set + ')' : d.set ? ' (' + d.set + ')' : '');
+    var data = { name: d.id ? d.name : full, set: d.set, no: d.no, cat: d.cat, kind: d.kind, cond: d.slab ? d.slab.grade : d.cond, price: pr === '' ? null : Number(pr), link: d.link || null,
+      images: imgs, officialImgs: d.official ? officialImgs(d).slice() : null, slab: d.slab };
+    if (d.id) { Object.assign(find(S.items, function (i) { return i.id === d.id; }), data); toast('Vare oppdatert'); }
+    else { data.id = 'i' + (++S.uid); data.v = S.session; S.items.push(data); toast('Vare lagt til: ' + data.name); }
+    F = null; closeSheet('sh-flow'); render();
+  }
+  $('#btn-add').addEventListener('click', openAdd);
+  $('#vh-items').addEventListener('click', function (e) {
+    var ed = e.target.closest('[data-edit]'), de = e.target.closest('[data-del]');
+    if (ed) openEdit(ed.getAttribute('data-edit'));
+    if (de) { var id = de.getAttribute('data-del'), it = find(S.items, function (i) { return i.id === id; }); if (confirm('Slette «' + it.name + '»?')) { S.items = S.items.filter(function (i) { return i.id !== id; }); toast('Vare slettet'); render(); } }
+  });
+
+  /* ===== KJØPER: posisjon, søk ===== */
+  function setPicking(on) { S.picking = on; $('#pick-banner').classList.toggle('show', on); $('#k-card').classList.toggle('picking', on); }
+  $('#k-scroll').addEventListener('click', function (e) {
+    var g = e.target.closest('[data-booth]'); if (!g) return;
+    var n = Number(g.getAttribute('data-booth'));
+    if (S.picking) { S.pos = n; setPicking(false); toast('Du står ved bord ' + n); VIEWS.kart(S.target); return; }
+    if (isActive(vByBooth(n))) go('bord/' + n);
+  });
+  $('#btn-pos').addEventListener('click', function () { $('#pos-num').value = ''; $('#pos-err').classList.remove('show'); $('#btn-pos-reset').style.display = S.pos == null ? 'none' : ''; openSheet('sh-pos'); });
+  $('#btn-pick-map').addEventListener('click', function () { closeSheet('sh-pos'); setPicking(true); VIEWS.kart(S.target); });
+  $('#btn-pick-cancel').addEventListener('click', function () { setPicking(false); VIEWS.kart(S.target); });
+  function usePosNum() {
+    var n = Number($('#pos-num').value);
+    if (!TABLES[n]) { var er = $('#pos-err'); er.textContent = 'Finner ikke bord «' + ($('#pos-num').value || '') + '». Bordene er nummerert 1–58.'; er.classList.add('show'); return; }
+    S.pos = n; closeSheet('sh-pos'); toast('Du står ved bord ' + n); VIEWS.kart(S.target);
+  }
+  $('#btn-pos-num').addEventListener('click', usePosNum);
+  $('#pos-num').addEventListener('keydown', function (e) { if (e.key === 'Enter') usePosNum(); });
+  $('#btn-pos-reset').addEventListener('click', function () { S.pos = null; closeSheet('sh-pos'); toast('Starter fra inngangen'); VIEWS.kart(S.target); });
+  $('#q').addEventListener('input', renderSearch);
+  function renderSearch() {
+    var q = $('#q').value.trim().toLowerCase(), box = $('#q-res');
+    if (!q) { box.innerHTML = '<div class="empty">Prøv «Charizard», «Sol Ring» eller «Elsa».</div>'; return; }
+    var hits = S.items.filter(function (it) { var v = vById(it.v); return isActive(v) && (it.name.toLowerCase().indexOf(q) >= 0 || v.name.toLowerCase().indexOf(q) >= 0); });
+    box.innerHTML = hits.length ? hits.map(function (it) { var v = vById(it.v); return '<button class="result" data-hit="' + v.booth + '"><span class="grow"><b>' + esc(it.name) + '</b><br><span class="muted small">' + esc(v.name) + ' · ' + esc(price(it)) + '</span></span><span class="tb">Bord ' + v.booth + '</span></button>'; }).join('') : '<div class="empty">Ingen treff på «' + esc(q) + '».</div>';
+  }
+  $('#q-res').addEventListener('click', function (e) { var b = e.target.closest('[data-hit]'); if (b) go('kart/' + b.getAttribute('data-hit')); });
+
+  render();
+})();
+</script>
+</body>
+</html>

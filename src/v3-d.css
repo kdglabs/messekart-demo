@@ -1,0 +1,27 @@
+  /* v3.1: to-stegs «Legg til vare» */
+  .stepper { margin: -4px 0 16px; }
+  .stepper .bars { display: flex; gap: 6px; margin-bottom: 6px; }
+  .stepper .bars i { flex: 1; height: 4px; border-radius: 4px; background: var(--line); }
+  .stepper .bars i.on { background: var(--accent); }
+  .stepper .st-l { font-size: .82rem; color: var(--muted); }
+  .stepper .st-l b { color: var(--ink); }
+  .cam-btn { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 96px; padding: 18px; border: none; border-radius: var(--radius); background: var(--accent); color: var(--accent-ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+  .cam-btn .cam-ic { width: 52px; height: 52px; border-radius: 14px; background: color-mix(in srgb, var(--accent-ink) 16%, transparent); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
+  .cam-btn b { display: block; font-size: 1.08rem; }
+  .cam-btn .d { display: block; font-size: .84rem; opacity: .85; margin-top: 2px; }
+  .or { display: flex; align-items: center; gap: 10px; margin: 16px 0 12px; color: var(--muted); font-size: .8rem; }
+  .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .result.sug .thumb { width: 46px; height: 64px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+  .result.sug .chev { color: var(--muted); font-size: 1.3rem; }
+  .tag.co { background: var(--accent); color: var(--accent-ink); font-weight: 800; }
+  .grade { font-weight: 700; color: var(--ink); }
+  .official { border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 12px; background: var(--surface); }
+  .official.on { border: 2px solid var(--ok); }
+  .official .off-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .official .imgs { display: flex; gap: 8px; }
+  .official .imgs img { width: 64px; height: 106px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+  .demo-pill { font-size: .66rem; font-weight: 800; letter-spacing: .05em; background: #ffc53d; color: #1a1a1a; padding: 2px 8px; border-radius: 6px; }
+  .btn-outline { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+  .notice .ext { font-weight: 700; }
+  .lock-hint { font-size: .84rem; color: var(--muted); margin: 0 0 10px; text-align: center; }
+  input[readonly] { opacity: .8; }

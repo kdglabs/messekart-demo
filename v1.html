@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digitalt messekart – TCG (demo)</title>
+<style>
+  :root {
+    --bg: #f4f6f9;
+    --surface: #ffffff;
+    --ink: #1a1d26;
+    --muted: #5c6578;
+    --line: #e2e6ef;
+    --accent: #2f6fed;
+    --accent-soft: #e8f0ff;
+    --accent-dark: #1e4fb8;
+    --success: #1a7f4b;
+    --success-soft: #e6f7ee;
+    --warn: #b45309;
+    --warn-soft: #fff7ed;
+    --danger: #c0392b;
+    --danger-soft: #fdecea;
+    --radius: 14px;
+    --shadow: 0 4px 20px rgba(26, 29, 38, 0.08);
+    --touch: 48px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font);
+    background: #d8dee9;
+    color: var(--ink);
+    line-height: 1.45;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .phone {
+    max-width: 430px;
+    min-height: 100dvh;
+    margin: 0 auto;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0,0,0,.12);
+  }
+
+  /* Top bar */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 56px;
+  }
+  .topbar h1 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    flex: 1;
+    line-height: 1.2;
+  }
+  .topbar .sub {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .btn-icon {
+    width: var(--touch);
+    height: var(--touch);
+    border: none;
+    background: var(--bg);
+    border-radius: 12px;
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .btn-icon:active { background: var(--line); }
+  .btn-icon.ghost { background: transparent; }
+
+  .badge-demo {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    background: var(--warn-soft);
+    color: var(--warn);
+    border: 1px solid #fed7aa;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  main {
+    flex: 1;
+    padding: 16px 16px 28px;
+    overflow-y: auto;
+  }
+
+  .screen { display: none; animation: fadeIn .22s ease; }
+  .screen.active { display: flex; flex-direction: column; flex: 1; min-height: 100dvh; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .hero {
+    background: linear-gradient(145deg, #1e3a6e 0%, #2f6fed 100%);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 22px 18px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow);
+  }
+  .hero h2 { font-size: 1.35rem; margin-bottom: 6px; }
+  .hero p { opacity: .9; font-size: 0.92rem; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .card h3 { font-size: 1rem; margin-bottom: 6px; }
+  .card p.muted, .muted { color: var(--muted); font-size: 0.88rem; }
+
+  .role-grid {
+    display: grid;
+    gap: 12px;
+  }
+  .role-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    text-align: left;
+    width: 100%;
+    padding: 16px;
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    min-height: var(--touch);
+  }
+  .role-btn:active, .role-btn:focus-visible {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    outline: none;
+  }
+  .role-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .role-btn strong { display: block; font-size: 1.05rem; margin-bottom: 2px; }
+  .role-btn span { color: var(--muted); font-size: 0.85rem; }
+
+  label.field {
+    display: block;
+    margin-bottom: 14px;
+  }
+  label.field > span {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  input, select, textarea {
+    width: 100%;
+    min-height: var(--touch);
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    font: inherit;
+    font-size: 1rem;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+  textarea { min-height: 88px; resize: vertical; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: var(--touch);
+    padding: 12px 18px;
+    border-radius: 12px;
+    border: none;
+    font: inherit;
+    font-weight: 650;
+    font-size: 0.95rem;
+    cursor: pointer;
+    width: 100%;
+    transition: transform .08s, opacity .15s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:active { background: var(--accent-dark); }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--ink);
+    border: 1.5px solid var(--line);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--accent);
+    border: none;
+  }
+  .btn-danger {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+  .btn-sm {
+    width: auto;
+    min-height: 40px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .btn-row .btn { flex: 1; }
+
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-16 { margin-bottom: 16px; }
+
+  .pill {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+  }
+  .pill.ok { background: var(--success-soft); color: var(--success); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+
+  /* Hall map */
+  .hall-wrap {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px;
+    overflow: hidden;
+  }
+  .hall-label {
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .hall {
+    position: relative;
+    background: #eef2f8;
+    border: 2px dashed #c5cede;
+    border-radius: 12px;
+    padding: 12px;
+    aspect-ratio: 1 / 1.05;
+  }
+  .hall-entrance {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--muted);
+    background: #fff;
+    padding: 2px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+  .booth-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    height: calc(100% - 22px);
+  }
+  .booth {
+    border: 2px solid #b8c4d9;
+    border-radius: 10px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6px 4px;
+    cursor: pointer;
+    min-height: 64px;
+    transition: border-color .15s, background .15s, transform .1s;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .booth:active { transform: scale(0.96); }
+  .booth.occupied {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .booth.empty {
+    opacity: .55;
+    border-style: dashed;
+    pointer-events: none;
+  }
+  .booth .bn {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--accent-dark);
+  }
+  .booth .vn {
+    font-size: 0.68rem;
+    color: var(--ink);
+    margin-top: 2px;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+  .booth.highlight {
+    box-shadow: 0 0 0 3px #f59e0b;
+    border-color: #f59e0b;
+    background: #fffbeb;
+  }
+
+  /* Place booths (arrangør) – same map, drag-feel via tap toggle */
+  .booth.placeable {
+    cursor: pointer;
+    pointer-events: auto;
+    opacity: 1;
+  }
+  .booth.placed {
+    border-color: var(--success);
+    background: var(--success-soft);
+  }
+  .booth.placed .bn { color: var(--success); }
+
+  /* Item list */
+  .item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .item:last-child { border-bottom: none; }
+  .item-body { flex: 1; min-width: 0; }
+  .item-title { font-weight: 700; font-size: 0.95rem; }
+  .item-meta { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+  .item-price {
+    font-weight: 750;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .item-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  a.ext-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 6px 10px;
+    background: var(--accent-soft);
+    border-radius: 8px;
+    min-height: 36px;
+  }
+  a.ext-link:active { opacity: .8; }
+
+  .search-bar {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .search-bar input {
+    padding-left: 44px;
+  }
+  .search-bar .sicon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+    pointer-events: none;
+  }
+
+  .result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font: inherit;
+  }
+  .result:active { background: var(--accent-soft); border-color: var(--accent); }
+  .result .r-info { flex: 1; min-width: 0; }
+  .result .r-booth {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 8px 10px;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+
+  .invite-box {
+    background: var(--bg);
+    border: 1px dashed var(--accent);
+    border-radius: 12px;
+    padding: 14px;
+    word-break: break-all;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.82rem;
+    color: var(--accent-dark);
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%) translateY(120%);
+    max-width: min(380px, calc(100% - 32px));
+    background: var(--ink);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    z-index: 100;
+    opacity: 0;
+    transition: transform .25s ease, opacity .25s ease;
+    pointer-events: none;
+    box-shadow: var(--shadow);
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 28px 16px;
+    color: var(--muted);
+  }
+
+  .steps {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .steps span {
+    flex: 1;
+    height: 4px;
+    border-radius: 4px;
+    background: var(--line);
+  }
+  .steps span.on { background: var(--accent); }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9rem;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .k { color: var(--muted); }
+  .info-row .v { font-weight: 650; text-align: right; }
+
+  .upload-sim {
+    border: 2px dashed #b8c4d9;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    background: #f8fafc;
+    cursor: pointer;
+  }
+  .upload-sim.done {
+    border-color: var(--success);
+    background: var(--success-soft);
+  }
+  .upload-sim .big { font-size: 1.8rem; margin-bottom: 6px; }
+
+  .bottom-nav {
+    display: flex;
+    gap: 8px;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    position: sticky;
+    bottom: 0;
+  }
+  .bottom-nav .btn { flex: 1; }
+
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,29,38,.45);
+    z-index: 50;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    width: 100%;
+    max-width: 430px;
+    border-radius: 18px 18px 0 0;
+    padding: 18px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    max-height: 90dvh;
+    overflow-y: auto;
+    animation: slideUp .25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(40px); opacity: .5; }
+    to { transform: none; opacity: 1; }
+  }
+  .modal h3 { margin-bottom: 14px; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+</style>
+</head>
+<body>
+<div class="phone" id="app">
+
+  <!-- ========== START / ROLLEVALG ========== -->
+  <section class="screen active" id="screen-start" data-screen="start">
+    <div class="topbar">
+      <div style="width:48px"></div>
+      <h1>Digitalt messekart <span class="sub">TCG-messer · demo</span></h1>
+      <span class="badge-demo">Eksempeldata</span>
+    </div>
+    <main>
+      <div class="hero">
+        <h2>Velkommen</h2>
+        <p>Prototype for digitale messekart. Velg en rolle for å prøve flyten – alt er eksempeldata, ingen ekte backend.</p>
+      </div>
+      <p class="muted mb-16" style="text-align:center">Velg rolle</p>
+      <div class="role-grid">
+        <button type="button" class="role-btn" data-go="arrangor-create">
+          <span class="role-icon" aria-hidden="true">📋</span>
+          <span>
+            <strong>Arrangør</strong>
+            <span>Opprett messe, last opp kart, inviter vendors</span>
+          </span>
+        </button>
+        <button type="button" class="role-btn" data-go="vendor-invite">
+          <span class="role-icon" aria-hidden="true">🏪</span>
+          <span>
+            <strong>Vendor</strong>
+            <span>Godta invitasjon, sett bord og varer</span>
+          </span>
+        </button>
+        <button type="button" class="role-btn" data-go="kjoper-kart">
+          <span class="role-icon" aria-hidden="true">🗺️</span>
+          <span>
+            <strong>Kjøper</strong>
+            <span>Åpne offentlig kart for Oslo TCG Show</span>
+          </span>
+        </button>
+      </div>
+      <div class="card mt-16">
+        <h3>Oslo TCG Show <span class="pill warn">Eksempel</span></h3>
+        <p class="muted">15. november 2026 · Oslo Kongressenter, hall B</p>
+        <button type="button" class="btn btn-secondary mt-12" data-go="kjoper-kart">Åpne offentlig kart →</button>
+      </div>
+    </main>
+  </section>
+
+  <!-- ========== ARRANGØR: OPPRETT MESSE ========== -->
+  <section class="screen" id="screen-arrangor-create" data-screen="arrangor-create">
+    <div class="topbar">
+      <button type="button" class="btn-icon" data-go="start" aria-label="Tilbake">←</button>
+      <h1>Opprett messe <span class="sub">Arrangør</span></h1>
+      <span class="badge-demo">Eksempeldata</span>
+    </div>
+    <main>
+      <div class="steps"><span class="on"></span><span class="on"></span><span></span></div>
+      <div class="card">
+        <label class="field">
+          <span>Messenavn</span>
+          <input type="text" id="messe-navn" value="Oslo TCG Show">
+        </label>
+        <label class="field">
+          <span>Dato</span>
+          <input type="date" id="messe-dato" value="2026-11-15">
+        </label>
+        <label class="field">
+          <span>Sted</span>
+          <input type="text" id="messe-sted" value="Oslo Kongressenter, hall B">
+        </label>
+      </div>
+
+      <div class="card">
+        <h3>Last opp kart</h3>
+        <p class="muted mb-8">I demo simuleres opplasting – ferdig hallkart brukes.</p>
+        <div class="upload-sim" id="upload-kart" role="button" tabindex="0">
+          <div class="big">📎</div>
+          <strong>Trykk for å «laste opp» kart</strong>
+          <p class="muted" style="margin-top:4px;font-size:0.8rem">hall-b-plan.svg · eksempel</p>
+        </div>
+      </div>
+
+      <div class="card" id="place-booths-card" style="display:none">
+        <h3>Plasser bord</h3>
+        <p class="muted mb-8">Trykk på ledige soner for å plassere bord 12–32. <span class="pill warn">Eksempeldata</span></p>
+        <div class="hall-wrap">
+          <div class="hall-label">Hall B · plan (demo)</div>
+          <div class="hall" id="arrangor-hall"></div>
+        </div>
+        <p class="muted mt-8" id="booth-place-status">0 av 8 bord plassert</p>
+      </div>
+
+      <button type="button" class="btn btn-primary mt-8" id="btn-save-messe">Lagre messe og fortsett</button>
+    </main>
+  </section>
+
+  <!-- ========== ARRANGØR: INVITER VENDOR ========== -->
+  <section class="screen" id="screen-arrangor-invite" data-screen="arrangor-invite">
+    <div class="topbar">
+      <button type="button" class="btn-icon" data-go="arrangor-create" aria-label="Tilbake">←</button>
+      <h1>Inviter vendor <span class="sub">Arrangør</span></h1>
+      <span class="badge-demo">Eksempeldata</span>
+    </div>
+    <main>
+      <div class="steps"><span class="on"></span><span class="on"></span><span class="on"></span></div>
+      <div class="card">
+        <h3 id="invite-messe-title">Oslo TCG Show</h3>
+        <p class="muted" id="invite-messe-meta">15. nov 2026 · Oslo Kongressenter, hall B</p>
+        <div class="chip-row">
+          <span class="pill ok">Kart lastet</span>
+          <span class="pill ok">8 bord plassert</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Invitasjonslenke</h3>
+        <p class="muted mb-8">Del lenken med vendors. I demo kopieres den til utklippstavlen.</p>
+        <div class="invite-box" id="invite-link">https://messekart.demo/i/oslo-tcg-show-2026?token=demo-abc123</div>
+        <button type="button" class="btn btn-primary mt-12" id="btn-copy-invite">📋 Kopier lenke</button>
+        <button type="button" class="btn btn-secondary mt-8" data-go="vendor-invite">Prøv som vendor →</button>
+      </div>
+      <button type="button" class="btn btn-ghost mt-8" data-go="kjoper-kart">Se offentlig kjøperkart</button>
+    </main>
+  </section>
+
+  <!-- ========== VENDOR: GODTA INVITASJON ========== -->
+  <section class="screen" id="screen-vendor-invite" data-screen="vendor-invite">
+    <div class="topbar">
+      <button type="button" class="btn-icon" data-go="start" aria-label="Tilbake">←</button>
+      <h1>Godta invitasjon <span class="sub">Vendor</span></h1>
+      <span class="badge-demo">Eksempeldata</span>
+    </div>
+    <main>
+      <div class="card" style="background:var(--accent-soft);border-color:#c5d8ff">
+        <p class="muted" style="color:var(--accent-dark)">Du er invitert til</p>
+        <h3 style="margin-top:4px">Oslo TCG Show</h3>
+        <p class="muted">15. november 2026 · Oslo Kongressenter, hall B</p>
+      </div>
+      <div class="card">
+        <label class="field">
+          <span>Butikknavn</span>
+          <input type="text" id="vendor-navn" placeholder="F.eks. Nordic Cards" value="">
+        </label>
+        <label class="field">
+          <span>Velg ledige bord</span>
+          <select id="vendor-bord"></select>
+        </label>
+        <p class="muted" style="font-size:0.8rem">Ledige bord i demo. Allerede «opptatte» er forhåndsutfylt som eksempelvendors.</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="btn-accept-invite">Godta og gå til vareliste</button>
+      <button type="button" class="btn btn-ghost mt-8" id="btn-demo-vendor">Bruk eksempel: Nordic Cards · bord 12</button>
+    </main>
+  </section>
+
+  <!-- ========== VENDOR: VARELISTE ========== -->
+  <section class="screen" id="screen-vendor-varer" data-screen="vendor-varer">
+    <div class="topbar">
+      <button type="button" class="btn-icon" data-go="vendor-invite" aria-label="Tilbake">←</button>
+      <h1 id="vendor-varer-title">Vareliste <span class="sub">Vendor</span></h1>
+      <span class="badge-demo">Eksempeldata</span>
+    </div>
+    <main>
+      <div class="card" id="vendor-varer-meta"></div>
+      <div class="btn-row mb-8">
+        <button type="button" class="btn btn-primary" id="btn-add-item">＋ Legg til vare</button>
+      </div>
+      <div class="card" style="padding-top:4px;padding-bottom:4px">
+        <div id="vendor-item-list"></div>
+      </div>
+      <button type="button" class="btn btn-secondary mt-12" data-go="kjoper-kart">Se hvordan kjøpere ser kartet →</button>
+    </main>
+  </section>
+
+  <!-- ========== KJØPER: KART ========== -->
+  <section class="screen" id="screen-kjoper-kart" data-screen="kjoper-kart">
+    <div class="topbar">
+      <button type="button" class="btn-icon" data-go="start" aria-label="Tilbake">←</button>
+      <h1>Oslo TCG Show <span class="sub">Offentlig kart · 15. nov 2026</span></h1>
+      <span class="badge-demo">Eksempeldata</span>
+    </div>
+    <main>
+      <div class="search-bar">
+        <span class="sicon" aria-hidden="true">🔍</span>
+        <input type="search" id="quick-search" placeholder="Søk etter kort…" enterkeyhint="search" autocomplete="off">
+      </div>
+      <div class="hall-wrap mb-16">
+        <div class="hall-label">Hall B · klikk et bord</div>
+        <div class="hall" id="kjoper-hall"></div>
+      </div>
+      <div class="card">
+        <h3>Vendors på messen</h3>
+        <div id="vendor-list-short" class="mt-8"></div>
+      </div>
+    </main>
+    <div class="bottom-nav">
+      <button type="button" class="btn btn-secondary" data-go="kjoper-sok">🔍 Søk</button>
+      <button type="button" class="btn btn-primary" data-go="start">Roller</button>
+    </div>
+  </section>
+
+  <!-- ========== KJØPER: BORDDETALJ ========== -->
+  <section class="screen" id="screen-kjoper-bord" data-screen="kjoper-bord">
+    <div class="topbar">
+      <button type="button" class="btn-icon" id="btn-back-bord" data-go="kjoper-kart" aria-label="Tilbake">←</button>
+      <h1 id="bord-detail-title">Bord <span class="sub">Detaljer</span></h1>
+      <span class="badge-demo">Eksempeldata</span>
+    </div>
+    <main>
+      <div class="card" id="bord-detail-meta"></div>
+      <h3 class="mb-8" style="font-size:0.95rem">Varer på bordet</h3>
+      <div class="card" style="padding-top:4px;padding-bottom:4px">
+        <div id="bord-detail-items"></div>
+      </div>
+    </main>
+    <div class="bottom-nav">
+      <button type="button" class="btn btn-secondary" data-go="kjoper-sok">🔍 Søk</button>
+      <button type="button" class="btn btn-primary" data-go="kjoper-kart">🗺️ Kart</button>
+    </div>
+  </section>
+
+  <!-- ========== KJØPER: SØK ========== -->
+  <section class="screen" id="screen-kjoper-sok" data-screen="kjoper-sok">
+    <div class="topbar">
+      <button type="button" class="btn-icon" data-go="kjoper-kart" aria-label="Tilbake">←</button>
+      <h1>Søk <span class="sub">Finn kort på messen</span></h1>
+      <span class="badge-demo">Eksempeldata</span>
+    </div>
+    <main>
+      <div class="search-bar">
+        <span class="sicon" aria-hidden="true">🔍</span>
+        <input type="search" id="full-search" placeholder="Søk på kortnavn…" autofocus autocomplete="off">
+      </div>
+      <p class="muted mb-8" id="search-hint">Prøv f.eks. «Charizard», «Sol Ring» eller «Elsa»</p>
+      <div id="search-results"></div>
+    </main>
+    <div class="bottom-nav">
+      <button type="button" class="btn btn-primary" data-go="kjoper-kart">🗺️ Tilbake til kart</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- Modal: legg til / rediger vare -->
+<div class="modal-backdrop" id="item-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <h3 id="modal-title">Legg til vare</h3>
+    <input type="hidden" id="edit-item-id">
+    <label class="field">
+      <span>Navn</span>
+      <input type="text" id="item-name" placeholder="Kort- eller produktnavn">
+    </label>
+    <label class="field">
+      <span>Tilstand</span>
+      <select id="item-condition">
+        <option>Near Mint</option>
+        <option>NM</option>
+        <option>Lightly Played</option>
+        <option>LP</option>
+        <option>Sealed</option>
+        <option>Moderately Played</option>
+      </select>
+    </label>
+    <label class="field">
+      <span>Pris (kr) – la stå tom for «se pris…»</span>
+      <input type="text" id="item-price" inputmode="numeric" placeholder="f.eks. 890">
+    </label>
+    <label class="field">
+      <span>Ekstern lenke (valgfritt)</span>
+      <select id="item-link-type">
+        <option value="">Ingen</option>
+        <option value="cardmarket">Cardmarket</option>
+        <option value="collectr">Collectr</option>
+      </select>
+    </label>
+    <div class="btn-row">
+      <button type="button" class="btn btn-secondary" id="btn-cancel-item">Avbryt</button>
+      <button type="button" class="btn btn-primary" id="btn-save-item">Lagre</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  const BOOTHS = [12, 13, 14, 21, 22, 23, 31, 32];
+  const HALL_SLOTS = [
+    { n: 12, r: 1, c: 1 }, { n: 13, r: 1, c: 2 }, { n: 14, r: 1, c: 3 },
+    { n: 21, r: 2, c: 1 }, { n: 22, r: 2, c: 2 }, { n: 23, r: 2, c: 3 },
+    { n: 31, r: 3, c: 1 }, { n: 32, r: 3, c: 2 }, { n: null, r: 3, c: 3 } // empty corner
+  ];
+
+  const LINK = {
+    cardmarket: { label: 'Cardmarket', url: 'https://www.cardmarket.com/en/Pokemon' },
+    collectr: { label: 'Collectr', url: 'https://collectr.com/' }
+  };
+
+  // Demo state – all example data
+  const state = {
+    messe: {
+      navn: 'Oslo TCG Show',
+      dato: '2026-11-15',
+      sted: 'Oslo Kongressenter, hall B',
+      kartLastet: false,
+      bordPlassert: new Set()
+    },
+    vendors: [
+      { id: 'v1', navn: 'Nordic Cards', bord: 12 },
+      { id: 'v2', navn: 'Binder Bros', bord: 13 },
+      { id: 'v3', navn: 'Pixel Packs', bord: 14 },
+      { id: 'v4', navn: 'Legend Vault', bord: 21 },
+      { id: 'v5', navn: 'Draugen Spillsenter', bord: 22 },
+      { id: 'v6', navn: 'Cardhaven', bord: 23 },
+      { id: 'v7', navn: 'Mega Mox', bord: 31 },
+      { id: 'v8', navn: 'Sealed Only', bord: 32 }
+    ],
+    items: [
+      { id: 'i1', vendorId: 'v1', name: 'Charizard ex (151)', condition: 'Near Mint', price: 890, link: 'cardmarket' },
+      { id: 'i2', vendorId: 'v1', name: 'Pikachu Illustrator (proxy/demo)', condition: 'NM', price: 1200, link: 'collectr' },
+      { id: 'i3', vendorId: 'v2', name: 'Umbreon VMAX (Evolving Skies)', condition: 'Lightly Played', price: 450, link: null },
+      { id: 'i4', vendorId: 'v4', name: 'Black Lotus (Alpha, demo)', condition: 'NM', price: null, priceNote: 'se pris på Cardmarket', link: 'cardmarket' },
+      { id: 'i5', vendorId: 'v8', name: 'One Piece OP-05 booster box', condition: 'Sealed', price: 1450, link: null },
+      { id: 'i6', vendorId: 'v6', name: 'Lorcana Elsa (promo)', condition: 'NM', price: 320, link: null },
+      { id: 'i7', vendorId: 'v3', name: 'Yu-Gi-Oh Blue-Eyes White Dragon (LOB)', condition: 'LP', price: 180, link: null },
+      { id: 'i8', vendorId: 'v7', name: 'MTG Sol Ring (Commander Masters)', condition: 'NM', price: 25, link: null },
+      { id: 'i9', vendorId: 'v8', name: 'Pokémon ETB Ascended Heroes', condition: 'Sealed', price: 799, link: null },
+      { id: 'i10', vendorId: 'v5', name: 'Digimon BT-14 case', condition: 'Sealed', price: 2100, link: null }
+    ],
+    currentVendorId: 'v1',
+    selectedBooth: null,
+    bordBack: 'kjoper-kart',
+    idCounter: 100
+  };
+
+  // ---------- helpers ----------
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $$(sel, root) { return Array.from((root || document).querySelectorAll(sel)); }
+
+  function formatPrice(item) {
+    if (item.priceNote) return item.priceNote;
+    if (item.price == null || item.price === '') return 'Pris ikke satt';
+    return Number(item.price).toLocaleString('nb-NO') + ' kr';
+  }
+
+  function formatDato(iso) {
+    if (!iso) return '';
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function toast(msg) {
+    const el = $('#toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => el.classList.remove('show'), 2200);
+  }
+
+  function vendorByBooth(n) {
+    return state.vendors.find(v => v.bord === n);
+  }
+
+  function vendorById(id) {
+    return state.vendors.find(v => v.id === id);
+  }
+
+  function itemsForVendor(vid) {
+    return state.items.filter(i => i.vendorId === vid);
+  }
+
+  // ---------- navigation ----------
+  function showScreen(name, opts) {
+    opts = opts || {};
+    $$('.screen').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById('screen-' + name);
+    if (!el) return;
+    el.classList.add('active');
+    
+    if (name === 'arrangor-create') renderArrangorHall();
+    if (name === 'arrangor-invite') renderInvite();
+    if (name === 'vendor-invite') renderVendorInvite();
+    if (name === 'vendor-varer') renderVendorVarer();
+    if (name === 'kjoper-kart') renderKjoperKart();
+    if (name === 'kjoper-bord') {
+      state.selectedBooth = opts.booth != null ? Number(opts.booth) : state.selectedBooth;
+      if (opts.from) state.bordBack = opts.from;
+      renderBordDetail();
+      $('#btn-back-bord').setAttribute('data-go', state.bordBack || 'kjoper-kart');
+    }
+    if (name === 'kjoper-sok') {
+      renderSearch($('#full-search').value);
+      setTimeout(() => $('#full-search').focus(), 100);
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function nav(name) {
+    if (location.hash === '#' + name) showScreen(name); else location.hash = name;
+  }
+  function navBord(booth, from) {
+    state.bordBack = from || 'kjoper-kart';
+    const h = '#kjoper-bord/' + booth;
+    if (location.hash === h) showScreen('kjoper-bord', { booth: booth }); else location.hash = h;
+  }
+
+  function parseHash() {
+    const h = (location.hash || '#start').slice(1);
+    const parts = h.split('/');
+    const name = parts[0] || 'start';
+    const booth = parts[1] ? Number(parts[1]) : null;
+    if (name === 'kjoper-bord' && booth) showScreen('kjoper-bord', { booth });
+    else showScreen(name);
+  }
+
+  document.addEventListener('click', (e) => {
+    const go = e.target.closest('[data-go]');
+    if (!go) return;
+    e.preventDefault();
+    const target = go.getAttribute('data-go');
+    if (target === 'kjoper-bord') {
+      navBord(go.getAttribute('data-booth'), go.getAttribute('data-from') || 'kjoper-kart');
+    } else {
+      nav(target);
+    }
+  });
+
+  // ---------- hall rendering ----------
+  function buildHall(container, mode, highlightBooth) {
+    // mode: 'place' | 'view'
+    container.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'booth-grid';
+
+    HALL_SLOTS.forEach(slot => {
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'booth';
+
+      if (slot.n == null) {
+        cell.classList.add('empty');
+        cell.innerHTML = '<span class="vn" style="color:#9aa3b5">—</span>';
+        cell.disabled = true;
+        grid.appendChild(cell);
+        return;
+      }
+
+      const vendor = vendorByBooth(slot.n);
+      cell.dataset.booth = String(slot.n);
+
+      if (mode === 'place') {
+        const placed = state.messe.bordPlassert.has(slot.n);
+        cell.classList.add('placeable');
+        if (placed) cell.classList.add('placed');
+        cell.innerHTML = '<span class="bn">Bord ' + slot.n + '</span>' +
+          (placed ? '<span class="vn">Plassert</span>' : '<span class="vn">Ledig</span>');
+        cell.addEventListener('click', () => {
+          if (state.messe.bordPlassert.has(slot.n)) state.messe.bordPlassert.delete(slot.n);
+          else state.messe.bordPlassert.add(slot.n);
+          renderArrangorHall();
+        });
+      } else {
+        if (vendor) {
+          cell.classList.add('occupied');
+          cell.innerHTML = '<span class="bn">' + slot.n + '</span><span class="vn">' + escapeHtml(vendor.navn) + '</span>';
+          cell.addEventListener('click', () => navBord(slot.n, 'kjoper-kart'));
+        } else {
+          cell.classList.add('empty');
+          cell.innerHTML = '<span class="bn">' + slot.n + '</span><span class="vn">Ledig</span>';
+          cell.disabled = true;
+        }
+        if (highlightBooth === slot.n) cell.classList.add('highlight');
+      }
+      grid.appendChild(cell);
+    });
+
+    container.appendChild(grid);
+    const ent = document.createElement('div');
+    ent.className = 'hall-entrance';
+    ent.textContent = '↓ Inngang';
+    container.appendChild(ent);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[c]);
+  }
+
+  function renderArrangorHall() {
+    const wrap = $('#arrangor-hall');
+    if (!wrap) return;
+    buildHall(wrap, 'place');
+    const n = state.messe.bordPlassert.size;
+    $('#booth-place-status').textContent = n + ' av 8 bord plassert';
+  }
+
+  // ---------- arrangør ----------
+  const uploadEl = $('#upload-kart');
+  function markKartUploaded() {
+    state.messe.kartLastet = true;
+    uploadEl.classList.add('done');
+    uploadEl.innerHTML = '<div class="big">✓</div><strong>Kart lastet (eksempel)</strong><p class="muted" style="margin-top:4px;font-size:0.8rem">hall-b-plan.svg</p>';
+    $('#place-booths-card').style.display = 'block';
+    if (state.messe.bordPlassert.size === 0) {
+      BOOTHS.forEach(b => state.messe.bordPlassert.add(b));
+    }
+    renderArrangorHall();
+  }
+  uploadEl.addEventListener('click', markKartUploaded);
+  uploadEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); markKartUploaded(); } });
+
+  $('#btn-save-messe').addEventListener('click', () => {
+    state.messe.navn = $('#messe-navn').value.trim() || 'Oslo TCG Show';
+    state.messe.dato = $('#messe-dato').value;
+    state.messe.sted = $('#messe-sted').value.trim();
+    if (!state.messe.kartLastet) markKartUploaded();
+    if (state.messe.bordPlassert.size < 8) {
+      BOOTHS.forEach(b => state.messe.bordPlassert.add(b));
+      renderArrangorHall();
+    }
+    toast('Messe lagret (demo)');
+    nav('arrangor-invite');
+  });
+
+  function renderInvite() {
+    $('#invite-messe-title').textContent = state.messe.navn;
+    $('#invite-messe-meta').textContent = formatDato(state.messe.dato) + ' · ' + state.messe.sted;
+    const slug = state.messe.navn.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-æøå]/gi, '');
+    $('#invite-link').textContent = 'https://messekart.demo/i/' + slug + '?token=demo-abc123';
+  }
+
+  $('#btn-copy-invite').addEventListener('click', async () => {
+    const text = $('#invite-link').textContent;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+      toast('Lenke kopiert ✓');
+    } catch (err) {
+      toast('Lenke kopiert (simulert) ✓');
+    }
+  });
+
+  // ---------- vendor ----------
+  function occupiedBoothsForSelect() {
+    // In demo, when accepting as new vendor we show booths; pre-filled vendors "own" them.
+    // For demo UX: show all booths, mark taken, allow selecting any (updates that booth's vendor name).
+    return state.vendors.map(v => v.bord);
+  }
+
+  function renderVendorInvite() {
+    const sel = $('#vendor-bord');
+    sel.innerHTML = '';
+    BOOTHS.forEach(n => {
+      const v = vendorByBooth(n);
+      const opt = document.createElement('option');
+      opt.value = String(n);
+      opt.textContent = v ? ('Bord ' + n + ' — ' + v.navn + ' (eksisterende)') : ('Bord ' + n + ' — ledig');
+      sel.appendChild(opt);
+    });
+    // Prefer first empty if any, else 12
+    const empty = BOOTHS.find(n => !vendorByBooth(n));
+    sel.value = String(empty || 12);
+  }
+
+  $('#btn-demo-vendor').addEventListener('click', () => {
+    $('#vendor-navn').value = 'Nordic Cards';
+    $('#vendor-bord').value = '12';
+    acceptVendor();
+  });
+
+  $('#btn-accept-invite').addEventListener('click', acceptVendor);
+
+  function acceptVendor() {
+    const navn = $('#vendor-navn').value.trim();
+    const bord = Number($('#vendor-bord').value);
+    if (!navn) {
+      toast('Skriv inn butikknavn');
+      $('#vendor-navn').focus();
+      return;
+    }
+    let v = vendorByBooth(bord);
+    if (v) {
+      v.navn = navn;
+    } else {
+      v = { id: 'v' + (++state.idCounter), navn, bord };
+      state.vendors.push(v);
+    }
+    state.currentVendorId = v.id;
+    toast('Invitasjon godtatt (demo)');
+    nav('vendor-varer');
+  }
+
+  function renderVendorVarer() {
+    const v = vendorById(state.currentVendorId);
+    if (!v) return;
+    $('#vendor-varer-title').innerHTML = escapeHtml(v.navn) + ' <span class="sub">Bord ' + v.bord + '</span>';
+    $('#vendor-varer-meta').innerHTML =
+      '<div class="info-row"><span class="k">Butikk</span><span class="v">' + escapeHtml(v.navn) + '</span></div>' +
+      '<div class="info-row"><span class="k">Bord</span><span class="v">' + v.bord + '</span></div>' +
+      '<div class="info-row"><span class="k">Messe</span><span class="v">' + escapeHtml(state.messe.navn) + ' <span class="pill warn">Eksempel</span></span></div>';
+
+    const list = $('#vendor-item-list');
+    const items = itemsForVendor(v.id);
+    if (!items.length) {
+      list.innerHTML = '<div class="empty-state">Ingen varer ennå. Legg til din første vare.</div>';
+      return;
+    }
+    list.innerHTML = items.map(item => itemRowVendor(item)).join('');
+  }
+
+  function itemRowVendor(item) {
+    const linkHtml = item.link && LINK[item.link]
+      ? '<a class="ext-link" href="' + LINK[item.link].url + '" target="_blank" rel="noopener">' + LINK[item.link].label + ' ↗</a>'
+      : '';
+    return (
+      '<div class="item" data-id="' + item.id + '">' +
+        '<div class="item-body">' +
+          '<div class="item-title">' + escapeHtml(item.name) + '</div>' +
+          '<div class="item-meta">' + escapeHtml(item.condition) + ' · <span class="pill warn">Eksempeldata</span></div>' +
+          '<div class="item-actions">' +
+            '<button type="button" class="btn btn-sm btn-secondary" data-edit="' + item.id + '">Rediger</button>' +
+            '<button type="button" class="btn btn-sm btn-danger" data-del="' + item.id + '">Slett</button>' +
+            linkHtml +
+          '</div>' +
+        '</div>' +
+        '<div class="item-price">' + escapeHtml(formatPrice(item)) + '</div>' +
+      '</div>'
+    );
+  }
+
+  $('#vendor-item-list').addEventListener('click', (e) => {
+    const edit = e.target.closest('[data-edit]');
+    const del = e.target.closest('[data-del]');
+    if (edit) {
+      openItemModal(edit.getAttribute('data-edit'));
+    } else if (del) {
+      const id = del.getAttribute('data-del');
+      state.items = state.items.filter(i => i.id !== id);
+      toast('Vare slettet');
+      renderVendorVarer();
+    }
+  });
+
+  $('#btn-add-item').addEventListener('click', () => openItemModal(null));
+
+  function openItemModal(id) {
+    const modal = $('#item-modal');
+    $('#edit-item-id').value = id || '';
+    if (id) {
+      const item = state.items.find(i => i.id === id);
+      $('#modal-title').textContent = 'Rediger vare';
+      $('#item-name').value = item.name;
+      $('#item-condition').value = item.condition;
+      $('#item-price').value = item.price != null ? item.price : '';
+      $('#item-link-type').value = item.link || '';
+    } else {
+      $('#modal-title').textContent = 'Legg til vare';
+      $('#item-name').value = '';
+      $('#item-condition').value = 'Near Mint';
+      $('#item-price').value = '';
+      $('#item-link-type').value = '';
+    }
+    modal.classList.add('open');
+  }
+
+  function closeItemModal() {
+    $('#item-modal').classList.remove('open');
+  }
+
+  $('#btn-cancel-item').addEventListener('click', closeItemModal);
+  $('#item-modal').addEventListener('click', (e) => {
+    if (e.target === $('#item-modal')) closeItemModal();
+  });
+
+  $('#btn-save-item').addEventListener('click', () => {
+    const name = $('#item-name').value.trim();
+    if (!name) { toast('Navn er påkrevd'); return; }
+    const condition = $('#item-condition').value;
+    const priceRaw = $('#item-price').value.trim().replace(/\s/g, '');
+    const price = priceRaw === '' ? null : Number(priceRaw.replace(',', '.'));
+    const link = $('#item-link-type').value || null;
+    const id = $('#edit-item-id').value;
+    if (id) {
+      const item = state.items.find(i => i.id === id);
+      Object.assign(item, { name, condition, price, link, priceNote: price == null ? item.priceNote : null });
+      if (price != null) item.priceNote = null;
+      toast('Vare oppdatert');
+    } else {
+      state.items.push({
+        id: 'i' + (++state.idCounter),
+        vendorId: state.currentVendorId,
+        name, condition, price, link,
+        priceNote: price == null ? null : null
+      });
+      toast('Vare lagt til');
+    }
+    closeItemModal();
+    renderVendorVarer();
+  });
+
+  // ---------- kjøper ----------
+  function renderKjoperKart() {
+    buildHall($('#kjoper-hall'), 'view');
+    const list = $('#vendor-list-short');
+    const sorted = state.vendors.slice().sort((a, b) => a.bord - b.bord);
+    list.innerHTML = sorted.map(v => {
+      const count = itemsForVendor(v.id).length;
+      return (
+        '<button type="button" class="result" data-go="kjoper-bord" data-booth="' + v.bord + '" data-from="kjoper-kart">' +
+          '<div class="r-info"><strong>' + escapeHtml(v.navn) + '</strong>' +
+          '<div class="item-meta">' + count + ' vare' + (count === 1 ? '' : 'r') + '</div></div>' +
+          '<span class="r-booth">Bord ' + v.bord + '</span>' +
+        '</button>'
+      );
+    }).join('');
+  }
+
+  function renderBordDetail() {
+    const n = state.selectedBooth;
+    const v = vendorByBooth(n);
+    if (!v) {
+      $('#bord-detail-title').innerHTML = 'Bord ' + n + ' <span class="sub">Ledig</span>';
+      $('#bord-detail-meta').innerHTML = '<p class="muted">Ingen vendor på dette bordet (eksempel).</p>';
+      $('#bord-detail-items').innerHTML = '<div class="empty-state">Ingen varer</div>';
+      return;
+    }
+    $('#bord-detail-title').innerHTML = escapeHtml(v.navn) + ' <span class="sub">Bord ' + v.bord + '</span>';
+    $('#bord-detail-meta').innerHTML =
+      '<div class="info-row"><span class="k">Vendor</span><span class="v">' + escapeHtml(v.navn) + '</span></div>' +
+      '<div class="info-row"><span class="k">Bordnummer</span><span class="v">' + v.bord + '</span></div>' +
+      '<div class="info-row"><span class="k">Messe</span><span class="v">' + escapeHtml(state.messe.navn) + '</span></div>' +
+      '<p class="muted mt-8" style="font-size:0.78rem"><span class="pill warn">Eksempeldata</span> Priser og lager er fiktive.</p>';
+
+    const items = itemsForVendor(v.id);
+    const box = $('#bord-detail-items');
+    if (!items.length) {
+      box.innerHTML = '<div class="empty-state">Ingen varer listet ennå</div>';
+      return;
+    }
+    box.innerHTML = items.map(item => {
+      const linkHtml = item.link && LINK[item.link]
+        ? '<a class="ext-link" href="' + LINK[item.link].url + '" target="_blank" rel="noopener">' + LINK[item.link].label + ' ↗</a>'
+        : '';
+      return (
+        '<div class="item">' +
+          '<div class="item-body">' +
+            '<div class="item-title">' + escapeHtml(item.name) + '</div>' +
+            '<div class="item-meta">' + escapeHtml(item.condition) + '</div>' +
+            (linkHtml ? '<div class="item-actions">' + linkHtml + '</div>' : '') +
+          '</div>' +
+          '<div class="item-price">' + escapeHtml(formatPrice(item)) + '</div>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  function renderSearch(q) {
+    const box = $('#search-results');
+    const query = (q || '').trim().toLowerCase();
+    let results = state.items.map(item => {
+      const v = vendorById(item.vendorId);
+      return { item, vendor: v };
+    }).filter(r => r.vendor);
+
+    if (query) {
+      results = results.filter(r => r.item.name.toLowerCase().includes(query));
+    }
+
+    if (!results.length) {
+      box.innerHTML = '<div class="empty-state">' + (query ? 'Ingen treff for «' + escapeHtml(q) + '»' : 'Skriv for å søke i eksempelvarer') + '</div>';
+      return;
+    }
+
+    if (!query) {
+      // show a few suggestions
+      results = results.slice(0, 6);
+      $('#search-hint').style.display = '';
+    } else {
+      $('#search-hint').style.display = 'none';
+    }
+
+    box.innerHTML = results.map(r => (
+      '<button type="button" class="result" data-go="kjoper-bord" data-booth="' + r.vendor.bord + '" data-from="kjoper-sok">' +
+        '<div class="r-info">' +
+          '<strong>' + escapeHtml(r.item.name) + '</strong>' +
+          '<div class="item-meta">' + escapeHtml(r.vendor.navn) + ' · ' + escapeHtml(r.item.condition) +
+          ' · ' + escapeHtml(formatPrice(r.item)) + '</div>' +
+        '</div>' +
+        '<span class="r-booth">Bord ' + r.vendor.bord + '</span>' +
+      '</button>'
+    )).join('');
+  }
+
+  $('#full-search').addEventListener('input', e => renderSearch(e.target.value));
+  $('#quick-search').addEventListener('input', e => {
+    const q = e.target.value;
+    $('#full-search').value = q;
+    e.target.value = '';
+    nav('kjoper-sok');
+  });
+  $('#quick-search').addEventListener('focus', () => {
+    // soft jump to search when tapping search on map – optional; keep on map until enter
+  });
+
+  // Make quick-search icon area / field also open search on empty submit
+  $('#quick-search').addEventListener('click', () => {
+    // stay; user can type
+  });
+
+  // Init from hash
+  window.addEventListener('hashchange', parseHash);
+  parseHash();
+})();
+</script>
+</body>
+</html>
