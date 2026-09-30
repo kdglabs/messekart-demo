@@ -1,0 +1,72 @@
+  <section class="screen" id="s-arr" data-title="Søknader">
+    <div class="scroll">
+      <h1 style="padding-top:20px">Søknader</h1>
+      <p class="lead" id="arr-lead" style="padding-bottom:12px"></p>
+      <div class="bignum" id="arr-num"></div>
+      <div class="seg" id="arr-seg" style="margin-top:16px"><button data-f="todo" class="on">Trenger handling</button><button data-f="all">Alle</button></div>
+      <ul class="apps" id="arr-apps" style="margin-top:12px"></ul>
+      <div id="arr-rej"></div>
+      <p class="mu sm" style="padding-top:14px">Betaling skjer utenfor appen: du fakturerer som i dag og trykker «Marker som betalt» når pengene er inne. Først da kan du sende bordkoden.</p>
+    </div>
+  </section>
+
+  <section class="screen" id="s-arr-bord" data-title="Bord">
+    <div class="scroll">
+      <h1 style="padding-top:20px">Bordliste</h1>
+      <p class="lead" id="ab-lead" style="padding-bottom:12px"></p>
+      <label class="search"><span data-ic="search"></span><input type="search" id="arr-q" placeholder="Bordnummer eller navn" autocomplete="off"></label>
+      <div class="seg" id="ab-seg" style="margin-top:12px"><button data-f="used" class="on">Tildelt</button><button data-f="all">Alle bord</button></div>
+      <ul class="list" id="ab-list" style="margin-top:12px"></ul>
+    </div>
+  </section>
+
+  <section class="screen" id="s-arr-messe" data-title="Messe">
+    <div class="scroll">
+      <h1 style="padding-top:20px">Messe</h1>
+      <p class="lead">Forhåndsutfylt eksempelmesse.</p>
+      <label class="f"><span>Navn</span><input id="ev-name"></label>
+      <label class="f"><span>Dato</span><input id="ev-date" type="date"></label>
+      <label class="f"><span>Sted</span><input id="ev-place"></label>
+      <h2>Hall</h2>
+      <div class="kv"><span>Hall</span><span>Fjellhamarhallen</span></div>
+      <div class="kv"><span>Størrelse</span><span>60 × 40 m</span></div>
+      <div class="kv"><span>Bord</span><span id="ev-tables"></span></div>
+      <p class="mu sm" style="padding-top:10px">Innredningen på kartet er et forenklet utkast for demoen, ikke en faktisk oppmåling eller den reelle planløsningen.</p>
+    </div>
+    <div class="dock"><button class="btn primary" id="btn-ev-save">Lagre messe</button></div>
+  </section>
+
+  <section class="screen" id="s-kart" data-title="Kart">
+    <div class="mapwrap" id="k-wrap">
+      <div class="mtop">
+        <button class="fakesearch" data-go="sok"><span data-ic="search"></span><span>Søk etter kort eller vendor</span></button>
+        <div class="note" id="pick-banner" style="display:none;margin:0;background:var(--bg);border-left-width:4px;box-shadow:0 1px 2px rgba(0,0,0,.08)"><b>Trykk på bordet du står ved</b> <button class="btn txt sm" id="btn-pick-cancel" style="min-height:44px;padding:0 4px 0 12px">Avbryt</button></div>
+      </div>
+      <div class="mapscroll" id="k-scroll"></div>
+      <div class="zoomb" style="top:76px"><button data-zoom="1" aria-label="Zoom inn">+</button><button data-zoom="-1" aria-label="Zoom ut">−</button></div>
+      <div class="panel" id="k-panel"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-sok" data-title="Søk" data-back="kart">
+    <div class="scroll">
+      <div class="navrow"><button class="back" data-back>__BACK__Kart</button></div>
+      <h1 class="tight">Søk</h1>
+      <label class="search"><span data-ic="search"></span><input type="search" id="q" placeholder="Kortnavn, f.eks. Sol Ring" autocomplete="off" enterkeyhint="search"></label>
+      <div id="q-res" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-bord" data-title="Bord" data-back="kart">
+    <div class="scroll">
+      <div class="navrow"><button class="back" data-back>__BACK__Kart</button></div>
+      <p class="mu" id="b-booth" style="font-weight:600"></p>
+      <h1 class="tight" id="b-name"></h1>
+      <p class="lead" id="b-bio" style="padding-bottom:4px"></p>
+      <h2>Varer</h2>
+      <div id="b-items"></div>
+    </div>
+    <div class="dock"><button class="btn primary" id="btn-route">Vis vei til bordet</button></div>
+  </section>
+
+  </div>

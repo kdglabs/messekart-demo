@@ -1,0 +1,25 @@
+  <div class="scrim" id="sh-flow"><div class="sheet" id="flow"></div></div>
+
+  <div class="scrim" id="sh-pos"><div class="sheet">
+    <div class="grip"><i></i></div>
+    <div class="sh-head"><h3>Hvor står du?</h3><button class="ib" data-close aria-label="Lukk"><span data-ic="x"></span></button></div>
+    <div class="sh-body">
+      <p class="mu" style="padding-bottom:16px">Ruten starter fra bordet du velger. Appen bruker ikke GPS.</p>
+      <label class="f"><span>Bordnummer</span><input id="pos-num" type="number" inputmode="numeric" min="1" max="54" placeholder="F.eks. 16"></label>
+      <div class="err" id="pos-err"></div>
+    </div>
+    <div class="sh-foot">
+      <button class="btn primary" id="btn-pos-num">Bruk bordnummer</button>
+      <button class="btn sec" id="btn-pick-map">Trykk på bordet i kartet</button>
+      <button class="btn txt" id="btn-pos-reset">Start fra inngangen</button>
+    </div>
+  </div></div>
+
+  <div class="scrim" id="sh-approve"><div class="sheet" id="approve"></div></div>
+  <div class="scrim" id="sh-paid"><div class="sheet" id="paid"></div></div>
+  <div class="scrim" id="sh-send"><div class="sheet" id="send"></div></div>
+  <div class="scrim" id="sh-reject"><div class="sheet" id="reject"></div></div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <nav class="tabbar" id="tabbar" aria-label="Hovednavigasjon"></nav>
+</div>

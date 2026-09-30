@@ -17,14 +17,14 @@
 <style>
 /* ===== v4: tokens ===== */
 :root{
-  --bg:#ffffff; --bg2:#f4f5f7; --tx:#16181d; --mu:#5b6270; --line:#e3e5e9; --line2:#c4c9d1; --ctl:#858c99;
+  --bg:#ffffff; --bg2:#f4f5f7; --tx:#16181d; --mu:#5b6270; --line:#e3e5e9; --line2:#c4c9d1;
   --ac:#2456d6; --ac-tx:#2456d6; --ac-soft:#e8eefc; --on-ac:#ffffff; --red:#b3261e;
   --m-floor:#f4f5f7; --m-zone:#e8eaee; --m-wall:#16181d; --m-tb:#ffffff; --m-tb-l:#b4bac4;
   --m-v:#d9dde4; --m-v-l:#8d95a3; --m-tx:#16181d; --page:#e9ebef; --scrim:rgba(15,16,18,.42);
   --sys:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
 }
 [data-theme=dark]{
-  --bg:#0f1012; --bg2:#151618; --tx:#e8e9ec; --mu:#9599a3; --line:#25272b; --line2:#3a3d44; --ctl:#666b77;
+  --bg:#0f1012; --bg2:#151618; --tx:#e8e9ec; --mu:#9599a3; --line:#25272b; --line2:#3a3d44;
   --ac:#3f6be0; --ac-tx:#88a7f6; --ac-soft:#1a2238; --on-ac:#ffffff; --red:#f2857b;
   --m-floor:#131416; --m-zone:#1c1e22; --m-wall:#b9bcc4; --m-tb:#0f1012; --m-tb-l:#3e424a;
   --m-v:#2b2e34; --m-v-l:#6c7280; --m-tx:#e8e9ec; --page:#070708; --scrim:rgba(0,0,0,.6);
@@ -204,8 +204,8 @@ h3{font-size:18px;font-weight:700}
 .sh-head .ib{width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--tx)}
 .sh-body{flex:1;min-height:0;overflow-y:auto;padding:0 20px 16px}
 .sh-foot{flex:none;padding:12px 20px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;background:var(--bg)}
-.toast{position:absolute;left:0;right:0;top:0;height:44px;z-index:50;background:var(--tx);color:var(--bg);padding:0 16px;display:none;align-items:center;justify-content:center;border-radius:0;font-size:15px;font-weight:600;display:none;text-align:center}
-.toast.show{display:flex}
+.toast{position:absolute;left:16px;right:16px;top:44px;z-index:50;background:var(--tx);color:var(--bg);padding:14px 16px;border-radius:10px;font-size:15px;font-weight:600;display:none;text-align:center}
+.toast.show{display:block}
 
 /* ===== arrangør: søknader ===== */
 .apps{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
@@ -283,40 +283,6 @@ h3{font-size:18px;font-weight:700}
 .demobar button{min-height:44px;min-width:44px}
 .row .chev svg.i{width:20px;height:20px}
 .item .ext{display:inline-flex;align-items:center;min-height:44px;margin-top:0}
-
-/* ===== v4-1: zoom/pan (transform) ===== */
-.mapscroll{touch-action:pan-x pan-y;overscroll-behavior:contain}
-.mz-size{position:relative;margin:0 auto;overflow:visible}
-.mz-t{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
-.zoomb button:disabled{cursor:default}
-.pickmap .zoomb{right:8px}
-
-/* ===== e-postforhåndsvisning ===== */
-.mailprev{border:1.5px solid var(--line2);border-radius:10px;background:var(--bg2);font-size:15px;overflow:hidden}
-.mailprev .mh{padding:10px 14px;border-bottom:1px solid var(--line);font-size:14px;overflow-wrap:anywhere}
-.mailprev .mh span{display:inline-block;width:48px;color:var(--mu)}
-.mailprev .mb{padding:14px;line-height:1.5}
-
-/* ===== v4-1: kontrast, kanter (ikke-tekst 3:1), plassholdere ===== */
-.btn.sec,.btn.danger,.f input,.f select,.f textarea,.inp,.search input,.seg,.chip,.fakesearch,.zoomb,.official,.pickmap,.mailprev{border-color:var(--ctl)}
-.seg button{border-left-color:var(--ctl)}
-.zoomb button+button{border-top-color:var(--ctl)}
-.tg .sw{background:var(--ctl)}
-.tg input:checked+.sw{background:var(--ac)}
-.stepbar i{background:var(--ctl)} .stepbar i.on{background:var(--ac)}
-.steps li::before{border-color:var(--ctl)} .steps li::after{background:var(--ctl)}
-.steps li.done::after{background:var(--tx)}
-.steps li.done::before{border-color:var(--tx)} .steps li.now::before{border-color:var(--ac)}
-.or::before,.or::after{background:var(--line2)}
-.chip.on{border-color:var(--ac)}
-input::placeholder,textarea::placeholder{color:var(--mu);opacity:1}
-.f input[readonly]{border-color:var(--ctl)}
-.camb span.d{opacity:1}
-.m-tb.taken text{fill:var(--mu)}
-.toast{pointer-events:none}
-.mapwrap.picking .zoomb{top:150px!important}
-#btn-vk-close{min-width:48px}
-.note a.blk{display:flex;align-items:center;min-height:44px;font-weight:600}
 </style>
 </head>
 <body>
@@ -426,7 +392,6 @@ input::placeholder,textarea::placeholder{color:var(--mu);opacity:1}
       <div class="bignum" id="arr-num"></div>
       <div class="seg" id="arr-seg" style="margin-top:16px"><button data-f="todo" class="on">Trenger handling</button><button data-f="all">Alle</button></div>
       <ul class="apps" id="arr-apps" style="margin-top:12px"></ul>
-      <div id="arr-rej"></div>
       <p class="mu sm" style="padding-top:14px">Betaling skjer utenfor appen: du fakturerer som i dag og trykker «Marker som betalt» når pengene er inne. Først da kan du sende bordkoden.</p>
     </div>
   </section>
@@ -784,7 +749,8 @@ input::placeholder,textarea::placeholder{color:var(--mu);opacity:1}
   var BASE = baseMap();
   // o: { zoom, own, selected, target, mode: 'buyer'|'vendor'|'pick', chosen, route, you:[x,y], fit }
   function mapSVG(o) {
-    var s = '<svg class="svg-map" viewBox="0 0 ' + MW + ' ' + MH + '" width="' + MW + '" height="' + MH + '" role="img" aria-label="Forenklet plan av Fjellhamarhallen, 60 × 40 meter">' + BASE;
+    var z = o.zoom || S.zoom;
+    var s = '<svg class="svg-map" viewBox="0 0 ' + MW + ' ' + MH + '" width="' + Math.round(MW * z) + '" height="' + Math.round(MH * z) + '" role="img" aria-label="Forenklet plan av Fjellhamarhallen, 60 × 40 meter">' + BASE;
     var ly = Y(40) + 62;
     s += '<g class="m-tb v"><rect x="' + X(30) + '" y="' + (ly - 9) + '" width="22" height="16"/></g><text class="m-dim" x="' + (X(30) + 30) + '" y="' + (ly + 5) + '" style="text-anchor:start;font-size:14px">Vendor</text>';
     s += '<g class="m-tb"><rect x="' + X(37) + '" y="' + (ly - 9) + '" width="22" height="16"/></g><text class="m-dim" x="' + (X(37) + 30) + '" y="' + (ly + 5) + '" style="text-anchor:start;font-size:14px">Ledig</text>';
@@ -811,69 +777,16 @@ input::placeholder,textarea::placeholder{color:var(--mu);opacity:1}
     }
     return s + '</svg>';
   }
-  /* Kartet tegnes i fast størrelse (MW x MH) og skaleres med CSS transform (.mz-t). Pan = vanlig scroll i .mapscroll. */
-  var ZMIN = 0.25, ZMAX = 3;
-  function clampZ(z) { return Math.min(ZMAX, Math.max(ZMIN, z)); }
-  function mapInto(sc, html, panelEl, z, o) {
-    o = o || {}; z = z || S.zoom;
-    var ph = panelEl && panelEl.style.display !== 'none' ? panelEl.offsetHeight : 0, top = o.top == null ? 70 : o.top, bot = o.bottom == null ? ph + 10 : o.bottom;
-    sc.innerHTML = '<div class="mz-pad" style="padding:' + top + 'px 0 ' + bot + 'px"><div class="mz-size" style="width:' + Math.round(MW * z) + 'px;height:' + Math.round(MH * z) + 'px"><div class="mz-t" style="width:' + MW + 'px;height:' + MH + 'px;transform:scale(' + z + ')">' + html + '</div></div></div>';
-    sc.setAttribute('data-zoom', z.toFixed(3)); sc._top = top;
-    updZoomBtns(sc, z);
-  }
-  function zoomOf(sc) { return sc._zget ? sc._zget() : S.zoom; }
-  function updZoomBtns(sc, z) {
-    var w = sc.closest('.mapwrap,.pickmap'); if (!w) return;
-    $$('[data-zoom]', w).forEach(function (b) { var d = Number(b.getAttribute('data-zoom')), off = d > 0 ? z >= ZMAX - 1e-6 : z <= ZMIN + 1e-6; b.disabled = off; b.style.opacity = off ? '.4' : ''; });
-  }
-  // Setter zoom z slik at innholdspunktet (cx,cy) havner på skjermpunkt (fx,fy) relativt til .mapscroll. cx/cy utelatt => punktet som ligger der nå.
-  function applyZoom(sc, z, fx, fy, cx, cy) {
-    var el = $('.mz-size', sc), t = $('.mz-t', sc); if (!el) return;
-    z = clampZ(z); var old = zoomOf(sc), sr = sc.getBoundingClientRect();
-    if (fx == null) { fx = sc.clientWidth / 2; fy = sc.clientHeight / 2; }
-    if (cx == null) { var r0 = el.getBoundingClientRect(); cx = (sr.left + fx - r0.left) / old; cy = (sr.top + fy - r0.top) / old; }
-    el.style.width = Math.round(MW * z) + 'px'; el.style.height = Math.round(MH * z) + 'px'; t.style.transform = 'scale(' + z + ')';
-    var r1 = el.getBoundingClientRect();
-    sc.scrollLeft += r1.left + cx * z - (sr.left + fx); sc.scrollTop += r1.top + cy * z - (sr.top + fy);
-    if (sc._zset) sc._zset(z); else S.zoom = z;
-    sc.setAttribute('data-zoom', z.toFixed(3)); updZoomBtns(sc, z);
-  }
-  function zoomBy(sc, factor, fx, fy) { applyZoom(sc, zoomOf(sc) * factor, fx, fy); }
-  // Ekte pinch (to fingre), Ctrl+hjul/styreflate-pinch. Én finger = vanlig scroll/pan.
-  function attachZoom(sc, get, set) {
-    if (get) { sc._zget = get; sc._zset = set; }
-    var st = null, rect;
-    function pt(e) { var a = e.touches[0], b = e.touches[1]; return { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1, x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 }; }
-    function end() { if (st) { sc.style.overflow = ''; st = null; sc._pinchAt = Date.now(); } }
-    sc.addEventListener('touchstart', function (e) {
-      if (e.touches.length !== 2) { if (st) end(); return; }
-      var p = pt(e), z = zoomOf(sc), sr = sc.getBoundingClientRect(), el = $('.mz-size', sc); if (!el) return;
-      var r0 = el.getBoundingClientRect();
-      st = { d: p.d, z: z, cx: (p.x - r0.left) / z, cy: (p.y - r0.top) / z };
-      sc.style.overflow = 'hidden'; sc._pinchAt = Date.now();
-    }, { passive: true });
-    sc.addEventListener('touchmove', function (e) {
-      if (!st || e.touches.length !== 2) return;
-      if (e.cancelable) e.preventDefault();
-      var p = pt(e), sr = sc.getBoundingClientRect();
-      applyZoom(sc, st.z * p.d / st.d, p.x - sr.left, p.y - sr.top, st.cx, st.cy); sc._pinchAt = Date.now();
-    }, { passive: false });
-    sc.addEventListener('touchend', function (e) { if (e.touches.length < 2) end(); }, { passive: true });
-    sc.addEventListener('touchcancel', end, { passive: true });
-    sc.addEventListener('wheel', function (e) {
-      if (!e.ctrlKey) return; e.preventDefault();
-      var sr = sc.getBoundingClientRect(); zoomBy(sc, Math.exp(-e.deltaY * 0.01), e.clientX - sr.left, e.clientY - sr.top);
-    }, { passive: false });
-    // ikke la avslutningen på en pinch slå ut som trykk på et bord
-    sc.addEventListener('click', function (e) { if (sc._pinchAt && Date.now() - sc._pinchAt < 350) { e.stopPropagation(); e.preventDefault(); } }, true);
+  function mapInto(sc, html, panelEl) {
+    var ph = panelEl && panelEl.style.display !== 'none' ? panelEl.offsetHeight : 0;
+    sc.innerHTML = '<div style="width:fit-content;padding:70px 0 ' + (ph + 10) + 'px">' + html + '</div>';
   }
   function centerOn(sc, pts, panelEl) {
     var xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; });
     var cx = (Math.min.apply(0, xs) + Math.max.apply(0, xs)) / 2, cy = (Math.min.apply(0, ys) + Math.max.apply(0, ys)) / 2;
-    var z = zoomOf(sc), ph = panelEl && panelEl.style.display !== 'none' ? panelEl.offsetHeight : 0, top = 70, vis = sc.clientHeight - top - ph;
-    var el = $('.mz-size', sc), off = el ? el.offsetLeft : 0;
-    sc.scrollLeft = Math.max(0, off + cx * z - sc.clientWidth / 2);
-    sc.scrollTop = Math.max(0, cy * z + top - (top + vis / 2));
+    var ph = panelEl && panelEl.style.display !== 'none' ? panelEl.offsetHeight : 0, top = 70, vis = sc.clientHeight - top - ph;
+    sc.scrollLeft = Math.max(0, cx * S.zoom - sc.clientWidth / 2);
+    sc.scrollTop = Math.max(0, cy * S.zoom + top - (top + vis / 2));
   }
   function tc(n) { var t = TABLES[n]; return [t.x + t.w / 2, t.y + t.h / 2]; }
 
@@ -912,9 +825,13 @@ input::placeholder,textarea::placeholder{color:var(--mu);opacity:1}
     var cl = e.target.closest('[data-close]'); if (cl) { closeSheet(cl.closest('.scrim').id); return; }
     if (e.target.classList && e.target.classList.contains('scrim')) { closeSheet(e.target.id); return; }
     var zb = e.target.closest('[data-zoom]');
-    if (zb) { var scr = $('.mapscroll', zb.closest('.mapwrap,.pickmap')); zoomBy(scr, Math.pow(1.3, Number(zb.getAttribute('data-zoom')))); }
+    if (zb) {
+      var wrap = zb.closest('.mapwrap'), scr = $('.mapscroll', wrap), cxm = (scr.scrollLeft + scr.clientWidth / 2) / S.zoom, cym = (scr.scrollTop + scr.clientHeight / 2) / S.zoom;
+      S.zoom = Math.min(1.4, Math.max(0.25, +(S.zoom + Number(zb.getAttribute('data-zoom')) * 0.125).toFixed(3)));
+      if (current === 'vendor-kart') renderVendorMap(); else renderKart();
+      scr.scrollLeft = cxm * S.zoom - scr.clientWidth / 2; scr.scrollTop = cym * S.zoom - scr.clientHeight / 2;
+    }
   });
-  ['#k-scroll', '#vk-scroll'].forEach(function (id) { attachZoom($(id)); });
   $('#btn-role').addEventListener('click', function () { go('start'); });
 
   function itemRow(it, opts) {
@@ -925,7 +842,7 @@ input::placeholder,textarea::placeholder{color:var(--mu);opacity:1}
     var tag = opts.edit ? 'button' : 'div', at = opts.edit ? ' data-edit="' + it.id + '"' : '';
     return '<' + tag + ' class="item"' + at + '>' + img + '<div class="g"><div class="nm">' + esc(it.name) + '</div><div class="cd">' + esc(condLine(it)) + '</div>' + extra + '</div><div class="pr">' + esc(price(it)) + '</div></' + tag + '>';
   }
-  function setPicking(on) { S.picking = on; $('#k-wrap').classList.toggle('picking', on); var b = $('#pick-banner'); if (b) b.style.display = on ? 'flex' : 'none'; if (b) b.style.alignItems = 'center'; }
+  function setPicking(on) { S.picking = on; var b = $('#pick-banner'); if (b) b.style.display = on ? 'flex' : 'none'; if (b) b.style.alignItems = 'center'; }
   function youXY() { return S.pos == null ? NODES.E : TABLES[S.pos].acc; }
 
   var VIEWS = {
@@ -1112,8 +1029,7 @@ input::placeholder,textarea::placeholder{color:var(--mu);opacity:1}
   function renderApps() {
     $('#arr-lead').textContent = S.ev.name + ' · ' + S.apps.length + ' søknader';
     $('#arr-num').innerHTML = '<div><b>' + cnt('new') + '</b><span>nye søknader</span></div><div><b>' + cnt('approved') + '</b><span>venter på betaling</span></div><div><b>' + cnt('paid') + '</b><span>klar for kode</span></div>';
-    var rows = S.apps.filter(function (a) { return a.status !== 'rejected' && (S.arrFilter === 'all' || a.status === 'new' || a.status === 'approved' || a.status === 'paid'); });
-    var rej = S.apps.filter(function (a) { return a.status === 'rejected'; });
+    var rows = S.apps.filter(function (a) { return S.arrFilter === 'all' || a.status === 'new' || a.status === 'approved' || a.status === 'paid'; });
     var order = { new: 0, paid: 1, approved: 2, sent: 3, rejected: 4 };
     rows = rows.slice().sort(function (x, y) { return order[x.status] - order[y.status]; });
     $('#arr-apps').innerHTML = rows.length ? rows.map(function (a) {
@@ -1121,30 +1037,21 @@ input::placeholder,textarea::placeholder{color:var(--mu);opacity:1}
       if (a.status === 'new') acts = '<button class="btn primary grow" data-act="approve" data-id="' + a.id + '">Godkjenn</button><button class="btn sec" style="width:auto" data-act="reject" data-id="' + a.id + '">Avslå</button>';
       if (a.status === 'approved') acts = '<button class="btn primary grow" data-act="paid" data-id="' + a.id + '">Marker som betalt</button>';
       if (a.status === 'paid') acts = '<button class="btn primary grow" data-act="send" data-id="' + a.id + '">Send kode</button>';
-      return appLi(a, acts);
+      var extra = a.status === 'sent' ? '<div class="mu sm mono" style="margin-top:4px">' + esc(a.code) + '</div>' : a.status === 'rejected' && a.reason ? '<div class="mu sm" style="margin-top:4px">' + esc(a.reason) + '</div>' : '';
+      return '<li class="app" data-app="' + a.id + '"><div class="top"><div><div class="nm">' + esc(a.name) + '</div><div class="meta">' + esc(a.person) + ' · ' + a.count + ' × ' + esc(a.size.toLowerCase()) + '</div></div><div class="bord">' + (a.booth ? 'Bord ' + a.booth : '') + '</div></div>' +
+        '<div class="meta" style="margin-top:6px;color:var(--tx)">' + esc(a.desc) + '</div>' +
+        '<div class="st"><span class="dot ' + st.d + '"></span>' + st.t + '</div>' + extra + (acts ? '<div class="acts">' + acts + '</div>' : '') + '</li>';
     }).join('') : '<li class="empty">Ingen søknader som trenger handling.</li>';
-    $('#arr-rej').innerHTML = rej.length ? '<h2>Avslått (' + rej.length + ')</h2><ul class="apps" id="arr-rej-list">' + rej.map(function (a) {
-      return appLi(a, '<button class="btn sec sm" data-act="undo" data-id="' + a.id + '">Angre avslag</button>');
-    }).join('') + '</ul>' : '';
     $('#arr-seg [data-f=todo]').textContent = 'Trenger handling (' + (cnt('new') + cnt('approved') + cnt('paid')) + ')';
     $('#arr-seg [data-f=all]').textContent = 'Alle (' + S.apps.length + ')';
     $$('#arr-seg button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-f') === S.arrFilter); });
   }
-  function appLi(a, acts) {
-      var st = STAT[a.status];
-      var extra = a.status === 'sent' ? '<div class="mu sm mono" style="margin-top:4px">' + esc(a.code) + '</div>' : a.status === 'rejected' && a.reason ? '<div class="mu sm" style="margin-top:4px">Begrunnelse: ' + esc(a.reason) + '</div>' : '';
-      return '<li class="app" data-app="' + a.id + '"><div class="top"><div><div class="nm">' + esc(a.name) + '</div><div class="meta">' + esc(a.person) + ' · ' + a.count + ' × ' + esc(a.size.toLowerCase()) + '</div></div><div class="bord">' + (a.booth ? 'Bord ' + a.booth : '') + '</div></div>' +
-        '<div class="meta" style="margin-top:6px;color:var(--tx)">' + esc(a.desc) + '</div>' +
-        '<div class="st"><span class="dot ' + st.d + '"></span>' + st.t + '</div>' + extra + (acts ? '<div class="acts">' + acts + '</div>' : '') + '</li>';
-  }
   $('#arr-seg').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; S.arrFilter = b.getAttribute('data-f'); renderApps(); });
-  function onAppAct(e) {
+  $('#arr-apps').addEventListener('click', function (e) {
     var b = e.target.closest('[data-act]'); if (!b) return;
     var a = appById(b.getAttribute('data-id')), act = b.getAttribute('data-act');
     if (act === 'approve') openApprove(a); else if (act === 'reject') openReject(a); else if (act === 'paid') openPaid(a); else if (act === 'send') openSend(a);
-    else if (act === 'undo') { a.status = 'new'; a.reason = null; a.booth = null; toast('Avslaget er angret. ' + a.name + ' ligger igjen under nye søknader.'); renderApps(); }
-  }
-  $('#arr-apps').addEventListener('click', onAppAct); $('#arr-rej').addEventListener('click', onAppAct);
+  });
   function shHead(t) { return '<div class="grip"><i></i></div><div class="sh-head"><h3>' + t + '</h3><button class="ib" data-close aria-label="Lukk">' + ic('x') + '</button></div>'; }
 
   /* Godkjenn + bordtildeling */
@@ -1162,20 +1069,13 @@ input::placeholder,textarea::placeholder{color:var(--mu);opacity:1}
       '<div class="flabel">Ledige bord</div><div class="chips" id="ap-chips">' + ch + '</div>' +
       '<div class="pickmap" id="ap-map"></div><div class="mu sm">Ledige bord har blå kant. Grå bord er tatt eller reservert.</div></div>' +
       '<div class="sh-foot"><button class="btn primary" id="btn-ap-ok">Godkjenn med bord ' + AP.pick + '</button><button class="btn txt" data-close>Avbryt</button></div>';
-    var m = $('#ap-map');
-    m.innerHTML = '<div class="mapscroll" id="ap-scroll"></div><div class="zoomb" style="top:8px"><button data-zoom="1" aria-label="Zoom inn">+</button><button data-zoom="-1" aria-label="Zoom ut">−</button></div>';
-    var sc = $('#ap-scroll'), t = TABLES[AP.pick], z = AP.z || 0.36;
-    mapInto(sc, mapSVG({ mode: 'pick', chosen: AP.pick }), null, z, { top: 0, bottom: 0 });
-    sc._zget = function () { return AP.z || 0.36; }; sc._zset = function (v) { AP.z = v; };
-    attachZoom(sc);
-    if (AP.keep) { sc.scrollLeft = AP.keep[0]; sc.scrollTop = AP.keep[1]; AP.keep = null; }
-    else { sc.scrollLeft = Math.max(0, (t.x + t.w / 2) * z - sc.clientWidth / 2); sc.scrollTop = Math.max(0, (t.y + t.h / 2) * z - sc.clientHeight / 2); }
+    var m = $('#ap-map'); m.innerHTML = '<div class="mapscroll" style="position:absolute;inset:0;overflow:auto"><div style="width:fit-content">' + mapSVG({ mode: 'pick', chosen: AP.pick, zoom: 0.36 }) + '</div></div>';
+    var sc = $('.mapscroll', m), t = TABLES[AP.pick]; sc.scrollLeft = Math.max(0, (t.x + t.w / 2) * 0.36 - sc.clientWidth / 2); sc.scrollTop = Math.max(0, (t.y + t.h / 2) * 0.36 - sc.clientHeight / 2);
   }
   $('#approve').addEventListener('click', function (e) {
     var c = e.target.closest('[data-tb]'), g = e.target.closest('[data-booth]');
     if (c) { AP.pick = Number(c.getAttribute('data-tb')); renderApprove(); return; }
-    if (e.target.closest('#ap-map') && !g) return;
-    if (g && e.target.closest('#ap-map')) { var n = Number(g.getAttribute('data-booth')); if (reservedBy(n)) { toast('Bord ' + n + ' er tatt'); return; } if (AP.sug.indexOf(n) < 0) AP.sug = AP.sug.concat(n).sort(function (x, y) { return x - y; }); AP.pick = n; var s0 = $('#ap-scroll'); AP.keep = [s0.scrollLeft, s0.scrollTop]; renderApprove(); return; }
+    if (g && e.target.closest('#ap-map')) { var n = Number(g.getAttribute('data-booth')); if (reservedBy(n)) { toast('Bord ' + n + ' er tatt'); return; } if (AP.sug.indexOf(n) < 0) AP.sug = AP.sug.concat(n).sort(function (x, y) { return x - y; }); AP.pick = n; renderApprove(); return; }
     if (e.target.closest('#btn-ap-ok')) { AP.a.status = 'approved'; AP.a.booth = AP.pick; closeSheet('sh-approve'); toast(AP.a.name + ' godkjent med bord ' + AP.pick); renderApps(); }
   });
   /* Avslå */
@@ -1198,11 +1098,7 @@ input::placeholder,textarea::placeholder{color:var(--mu);opacity:1}
   function openSend(a) {
     AP = { a: a }; if (!a.code) a.code = newCode(a.booth);
     $('#send').innerHTML = shHead('Send kode til ' + esc(a.name)) + '<div class="sh-body"><p class="mu" style="padding-bottom:12px">Koden gir tilgang til bord ' + a.booth + ' og sendes til ' + esc(a.email) + '. Vendor ser den ikke før du sender.</p>' +
-      '<div class="codebox"><span>Bordkode</span><b id="sd-code">' + esc(a.code) + '</b></div>' +
-      '<div class="flabel" style="display:flex;justify-content:space-between;align-items:center">Forhåndsvisning av e-posten <span class="tag">DEMO</span></div>' +
-      '<div class="mailprev" id="sd-mail"><div class="mh"><span>Til</span>' + esc(a.email) + '</div><div class="mh"><span>Emne</span>Bordkode for ' + esc(S.ev.name) + '</div>' +
-      '<div class="mb">Hei ' + esc(a.person.split(' ')[0]) + ',<br><br>her er bordkoden din til ' + esc(S.ev.name) + ' (' + esc(S.ev.place) + '): <b class="mono">' + esc(a.code) + '</b><br><br>Koden gjelder bord ' + a.booth + '. Åpne Messekart, velg «Vendor» og «Jeg har en kode», så kan du legge inn varene dine.<br><br>Vi sees på messen!<br>Arrangøren</div></div>' +
-      '<p class="mu sm" style="padding-top:8px">Simulert. Det sendes ingen ekte e-post.</p></div>' +
+      '<div class="codebox"><span>Bordkode</span><b id="sd-code">' + esc(a.code) + '</b></div></div>' +
       '<div class="sh-foot"><button class="btn primary" id="btn-send-ok">Send kode</button><button class="btn txt" data-close>Avbryt</button></div>';
     openSheet('sh-send');
   }
@@ -1288,7 +1184,7 @@ input::placeholder,textarea::placeholder{color:var(--mu);opacity:1}
         '<div class="imgs">' + officialImgs(d).map(function (u) { return '<img src="' + u + '" alt="Offisielt PSA-bilde (eksempel)">'; }).join('') + '</div>' +
         '<button class="btn sm ' + (d.official ? 'sec' : 'primary') + '" id="fl-psa-accept" style="width:100%">' + (d.official ? 'Bruker offisielle bilder – angre' : 'Bruk offisielle bilder') + '</button></div>';
     } else if (co === 'TAG' || co === 'CGC') {
-      h += '<div class="note" id="fl-offlink">' + co + ' deler ikke bilder her. Legg inn egne bilder av slabben.<a class="blk" id="fl-official" href="' + OFFICIAL_URL[co] + encodeURIComponent(d.slab.cert) + '" target="_blank" rel="noopener">Sjekk slabben på offisiell side (demolenke)</a></div>';
+      h += '<div class="note" id="fl-offlink">' + co + ' deler ikke bilder her. Sjekk slabben på <a id="fl-official" href="' + OFFICIAL_URL[co] + encodeURIComponent(d.slab.cert) + '" target="_blank" rel="noopener">offisiell side</a> (demolenke). Legg inn egne bilder.</div>';
     } else if (co) {
       h += '<p class="mu sm" style="margin:0 0 10px" id="fl-noofficial">' + co + ' har ingen offisielle bilder. Legg inn egne bilder av slabben.</p>';
     }

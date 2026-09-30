@@ -1,0 +1,101 @@
+</head>
+<body>
+<div id="app">
+  <div class="demobar"><b>Eksempeldata</b><span>· demo v4</span><span class="sp"></span><button id="btn-role" aria-label="Bytt rolle">Bytt rolle</button><button data-theme-btn aria-label="Bytt lys/mørk modus"></button></div>
+  <div class="stage">
+
+  <section class="screen" id="s-start" data-title="Messekart">
+    <div class="scroll">
+      <div style="height:40px"></div>
+      <p class="mu sm" style="font-weight:600;letter-spacing:.06em;text-transform:uppercase">Eksempelmesse</p>
+      <h1 class="tight" data-ev-name>Nordic Card Show Oslo</h1>
+      <p class="lead" data-event-line></p>
+      <h2>Jeg er</h2>
+      <ul class="list">
+        <li><button class="row" data-go="kart"><span class="g"><span class="t">Kjøper</span><br><span class="d">Finn kort og vei til bordet</span></span><span data-ic="chev" class="chev"></span></button></li>
+        <li><button class="row" data-go="vendor"><span class="g"><span class="t">Vendor</span><br><span class="d">Søk om bord eller logg inn med kode</span></span><span data-ic="chev" class="chev"></span></button></li>
+        <li><button class="row" data-go="arr"><span class="g"><span class="t">Arrangør</span><br><span class="d">Søknader, betaling og bordkoder</span></span><span data-ic="chev" class="chev"></span></button></li>
+      </ul>
+      <p class="mu sm" style="padding-top:20px">Klikkbar demo uten backend. Alt innhold er fiktivt, og alt nullstilles når siden lastes på nytt.</p>
+    </div>
+  </section>
+
+  <section class="screen" id="s-vendor" data-title="Vendor" data-back="start">
+    <div class="scroll">
+      <div class="navrow"><button class="back" data-back>__BACK__Tilbake</button></div>
+      <h1 class="tight">Bord som vendor</h1>
+      <p class="lead">Du søker om bord her. Arrangøren godkjenner søknaden og fakturerer deg utenfor appen. Bordkoden får du først når betalingen er registrert.</p>
+      <ol class="steps"><li>Du sender søknad<small>Firmanavn, bordstørrelse og hva du selger</small></li><li>Arrangøren godkjenner og gir deg bord</li><li>Du betaler fakturaen<small>Utenfor appen, som i dag</small></li><li>Du får bordkoden og logger inn</li></ol>
+    </div>
+    <div class="dock"><button class="btn primary" id="btn-apply">Søk om bord</button><button class="btn txt" data-go="vendor-login">Jeg har en kode</button></div>
+  </section>
+
+  <section class="screen" id="s-soknad" data-title="Søknad" data-back="vendor">
+    <div class="scroll">
+      <div class="navrow"><button class="back" data-back>__BACK__Tilbake</button></div>
+      <h1 class="tight">Søknad om bord</h1>
+      <p class="lead" data-event-line2></p>
+      <label class="f"><span>Firmanavn</span><input id="sk-firma" autocomplete="off" placeholder="F.eks. Norsk Kortlager"></label>
+      <label class="f"><span>Kontaktperson</span><input id="sk-person" autocomplete="off" placeholder="Fornavn Etternavn"></label>
+      <label class="f"><span>E-post</span><input id="sk-epost" type="email" autocomplete="off" placeholder="navn@firma.no"></label>
+      <div class="btnrow" style="margin-bottom:0">
+        <label class="f" style="flex:2"><span>Bordstørrelse</span><select id="sk-str"><option>Halvt bord (0,9 m)</option><option selected>Standard (1,8 m)</option><option>Dobbelt (3,6 m)</option></select></label>
+        <label class="f" style="flex:1"><span>Antall</span><select id="sk-ant"><option>1</option><option>2</option><option>3</option></select></label>
+      </div>
+      <label class="f"><span>Hva selger du?</span><textarea id="sk-desc" maxlength="240" placeholder="F.eks. Pokémon-singles, sealed og noen graderte kort"></textarea></label>
+      <div class="err" id="sk-err" role="alert"></div>
+      <button class="btn txt" id="btn-sk-demo">Fyll ut eksempel</button>
+    </div>
+    <div class="dock"><button class="btn primary" id="btn-sk-send">Send søknad</button></div>
+  </section>
+
+  <section class="screen" id="s-status" data-title="Status" data-back="vendor">
+    <div class="scroll" id="st-body"></div>
+    <div class="dock" id="st-dock"></div>
+  </section>
+
+  <section class="screen" id="s-vendor-login" data-title="Innlogging" data-back="vendor">
+    <div class="scroll">
+      <div class="navrow"><button class="back" data-back>__BACK__Tilbake</button></div>
+      <h1 class="tight">Logg inn med kode</h1>
+      <p class="lead">Koden har du fått av arrangøren etter at bordet er betalt. Det finnes ingen åpen registrering.</p>
+      <label class="f"><span>Bordkode</span><input id="v-code" class="code" placeholder="OTS-12-K7Q4" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+      <div class="err" id="v-err" role="alert"></div>
+      <button class="btn txt" id="btn-v-demo">Demo: fyll inn gyldig kode</button>
+    </div>
+    <div class="dock"><button class="btn primary" id="btn-v-login">Logg inn</button><button class="btn txt" data-go="vendor">Har du ikke kode? Søk om bord</button></div>
+  </section>
+
+  <section class="screen" id="s-vendor-home" data-title="Mitt bord">
+    <div class="scroll">
+      <h1 id="vh-name" style="padding-top:20px"></h1>
+      <p class="lead" id="vh-sub" style="padding-bottom:12px"></p>
+      <div class="bignum"><div><b id="vh-n">0</b><span>varer</span></div><div><b id="vh-b">0</b><span>bord</span></div></div>
+      <h2>Varer</h2>
+      <div id="vh-items"></div>
+    </div>
+    <div class="dock"><button class="btn primary" id="btn-add">Legg til vare</button></div>
+  </section>
+
+  <section class="screen" id="s-vendor-kart" data-title="Kart">
+    <div class="mapwrap" id="vk-wrap">
+      <div class="mtop"><div class="fakesearch" style="cursor:default"><span data-ic="pin"></span><span id="vk-hint">Trykk på et bord for å se vendor</span></div></div>
+      <div class="mapscroll" id="vk-scroll"></div>
+      <div class="zoomb" style="top:76px"><button data-zoom="1" aria-label="Zoom inn">+</button><button data-zoom="-1" aria-label="Zoom ut">−</button></div>
+      <div class="panel" id="vk-panel"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-vendor-profil" data-title="Profil">
+    <div class="scroll">
+      <h1 style="padding-top:20px">Profil</h1>
+      <p class="lead">Dette ser andre vendors. Kjøpere ser bare bio og varer, aldri kontaktinfo.</p>
+      <label class="f"><span>Kort bio</span><textarea id="pf-bio" maxlength="160" placeholder="Hva selger du?"></textarea></label>
+      <h2>Kontaktfelt</h2>
+      <div class="f" style="margin:0"><span class="flabel" style="margin:0">Telefon</span><input class="inp" id="pf-phone" inputmode="tel"><label class="tg"><span>Vis for andre vendors</span><input type="checkbox" id="pf-show-phone"><span class="sw"></span></label></div>
+      <div class="f" style="margin:0"><span class="flabel" style="margin:0">E-post</span><input class="inp" id="pf-email" type="email"><label class="tg"><span>Vis for andre vendors</span><input type="checkbox" id="pf-show-email"><span class="sw"></span></label></div>
+      <div class="f" style="margin:0"><span class="flabel" style="margin:0">Instagram</span><input class="inp" id="pf-ig" placeholder="@brukernavn"><label class="tg"><span>Vis for andre vendors</span><input type="checkbox" id="pf-show-ig"><span class="sw"></span></label></div>
+      <button class="btn txt" id="btn-logout" style="margin-top:12px">Logg ut</button>
+    </div>
+    <div class="dock"><button class="btn primary" id="btn-pf-save">Lagre profil</button></div>
+  </section>

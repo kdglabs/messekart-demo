@@ -8,8 +8,8 @@ Klikkbar demo av et digitalt messekart for TCG-messer, laget av **KDG Labs**.
 
 ## Innhold
 
-- `index.html` – gjeldende versjon (v3.1), helt selvstendig (all CSS/JS er inline).
-- `v1.html`, `v2.html`, `v3.html` – eldre versjoner.
+- `index.html` – gjeldende versjon (v4.1), helt selvstendig (all CSS/JS er inline).
+- `v1.html`, `v2.html`, `v3.html`, `v4.html` – eldre versjoner.
 - `src/` – kildefiler. Bygg `index.html` på nytt med:
 
   ```sh
